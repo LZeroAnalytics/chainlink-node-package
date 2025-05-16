@@ -3,7 +3,7 @@ def create_bhs_or_bhf_job(plan, job_type, vrf_coordinator_address, blockhash_sto
     if job_type == "bhs":
         job_type_str = "blockhashstore"
     elif job_type == "bhf":
-        job_type_str = "batchblockhashstore"
+        job_type_str = "blockheaderfeeder"
     else:
         fail("Invalid job type: " + job_type)
 
