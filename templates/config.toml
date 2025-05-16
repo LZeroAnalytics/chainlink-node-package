@@ -1,0 +1,36 @@
+[Log]
+Level = 'debug'
+
+[Database]
+MigrateOnStartup = true
+
+[Database.Lock]
+Enabled = false
+
+# --- API server -------------------------------------------------------------
+[WebServer]
+HTTPPort      = 6688        # expose on 6688
+SecureCookies = false       # allow plain HTTP for local dev
+AllowOrigins  = "*"         # CORS for any origin
+
+[WebServer.TLS]
+HTTPSPort=0
+# --- EVM chain --------------------------------------------------------------
+[[EVM]]
+ChainID = "{{.CHAIN_ID}}"
+
+[[EVM.Nodes]]
+Name    = "bloctopus"
+WSURL = "{{.WS_URL}}"
+HTTPURL = "{{.RPC_URL}}"
+
+[Feature]
+LogPoller = true
+
+[OCR2]
+Enabled = true
+
+# P2P layer (required for OCR2 / VRF v2)
+[P2P.V2]
+# Listen on every interface, TCP port 6690 inside the container
+ListenAddresses   = ["0.0.0.0:6689"]

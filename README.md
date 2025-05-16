@@ -51,6 +51,9 @@ This package allows you to deploy and configure Chainlink Nodes in isolated, rep
 
 ## 🏃 Quick Start
 
+<div style="display: flex; align-items: flex-start;">
+<div style="flex: 1;">
+
 1️⃣ Create a `config.yaml` file:
 
 ```yaml
@@ -62,16 +65,9 @@ network:
 chainlink_nodes:
   - node_name: "chainlink-1"
     image_version: "latest"
-    keystore_pw: "PasswordMustBeAtLeast16Characters!"
+    keystore_pw: "AtLeast16Characters!"
     api_user: "admin@chain.link"
     api_password: "StrongPassword123!"
-    postgres: 
-      user: "postgres"
-      password: "DatabasePassword123!"
-      min_cpu: 10
-      max_cpu: 1000
-      min_memory: 32
-      max_memory: 1024
 ```
 
 2️⃣ Run the package:
@@ -79,47 +75,54 @@ chainlink_nodes:
 ```bash
 kurtosis run github.com/your-org/chainlink-node-package --args-file config.yaml
 ```
-
-3️⃣ Access your node(s):
+3️⃣ Access your node(s) Operator UI:
 
 | Node Name   | Web UI               |
 |-------------|----------------------|
 | chainlink-1 | http://localhost:6688 |
 
-## ⚙️ Configuration Reference
+</div>
+<div style="flex: 0 0 50%; padding-left: 5%; padding-top: 8px;">
+<img src="./assets/operator-ui-screenshot.webp" alt="Chainlink Operator UI Screenshot" style="max-width: 650px; width: 100%;" />
+</div>
+</div>
 
-### Network Configuration
+## ⚙️ Configuration Reference (Args)
+
+The package provides a powerful input parser that auto-fills most parameters. You only need to specify the network configuration and node names to determine how many nodes to deploy.
+
+### 🌐 Network Configs (required)
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `rpc`     | Yes      | HTTP RPC endpoint URL |
-| `ws`      | Yes      | WebSocket endpoint URL |
-| `chain_id`| Yes      | Chain ID as string |
+| `rpc`     | ✅ Yes   | HTTP RPC endpoint URL |
+| `ws`      | ✅ Yes   | WebSocket endpoint URL |
+| `chain_id`| ✅ Yes   | Chain ID as string |
 
-### Chainlink Node Configuration
+### 🔗 Chainlink Node Configuration
 
 | Parameter     | Required | Default | Description |
 |---------------|----------|---------|-------------|
-| `node_name`   | Yes      | - | Unique name for the node |
-| `image_version` | No    | `latest` | Chainlink image version |
-| `keystore_pw` | Yes      | - | Node keystore password (min 16 chars) |
-| `api_user`    | Yes      | - | API/GUI username |
-| `api_password`| Yes      | - | API/GUI password |
+| `node_name`   | ✅ Yes   | - | Unique name for the node |
+| `image_version` | ❌ No  | `latest` | Chainlink image version |
+| `keystore_pw` | ❌ No  | - | Node keystore password (min 16 chars) |
+| `api_user`    | ❌ No   | - | API/GUI username |
+| `api_password`| ❌ No   | - | API/GUI password |
 
-### PostgreSQL Configuration
+### 🗄️ PostgreSQL Configuration
 
 | Parameter   | Required | Default | Description |
 |-------------|----------|---------|-------------|
-| `user`      | No       | `postgres` | Database username |
-| `password`  | Yes      | - | Database password |
-| `min_cpu`   | No       | 10 | Minimum CPU allocation |
-| `max_cpu`   | No       | 1000 | Maximum CPU allocation |
-| `min_memory`| No       | 32 | Minimum memory in MB |
-| `max_memory`| No       | 1024 | Maximum memory in MB |
+| `user`      | ❌ No    | `postgres` | Database username |
+| `password`  | ✅ Yes   | - | Database password |
+| `min_cpu`   | ❌ No    | 10 | Minimum CPU allocation |
+| `max_cpu`   | ❌ No    | 1000 | Maximum CPU allocation |
+| `min_memory`| ❌ No    | 32 | Minimum memory in MB |
+| `max_memory`| ❌ No    | 1024 | Maximum memory in MB |
 
 ## 🔄 Advanced Usage
 
-### Multi-Node Setup
+### 🖥️ Multi-Node Setup
 
 ```yaml
 chainlink_nodes:
@@ -133,7 +136,7 @@ chainlink_nodes:
     # Monitoring node config...
 ```
 
-### Custom Job Templates
+### 📝 Custom Job Templates
 
 The package includes several pre-configured job templates that get preloaded in the node to be used to create jobs on demand:
 - `ocr2vrf-job-template.toml`: OCR2 VRF job configuration
@@ -146,24 +149,24 @@ The package includes several pre-configured job templates that get preloaded in 
 
 This package provides Starlark functions for Chainlink Nodes setup and infrastructure management. **Note that only the `run` function is directly callable from the command line.** The other functions are internal to the package and used can be used only within Starlark scripts.
 
-### Main Function
+### 🚀 Main Function
 
 | Function | Description | How to Use |
 |----------|-------------|------------|
 | `run` | Main entrypoint that deploys all nodes in parallel | Directly with `kurtosis run github.com/your-org/vrf-package --args-file config.yaml` |
 
-### Internal Starlark Functions
+### 🧩 Internal Starlark Functions
 
 The following functions are used internally within the package's Starlark scripts. If you want to use these functions, you'll need to create custom Starlark scripts that import this package.
 
-#### Infrastructure Setup
+#### 🏗️ Infrastructure Setup
 
 | Function | Description | Parameters |
 |----------|-------------|------------|
 | `create_node_database` | Creates a PostgreSQL database for a node | `plan`, `postgres_configs`, `node_name` |
 | `create_node_config` | Creates a ServiceConfig for a node | `plan`, `chainlink_configs`, `postgres_output`, `chain_configs` |
 
-#### Key Management
+#### 🔑 Key Management
 
 | Function | Description | Parameters |
 |----------|-------------|------------|
@@ -173,7 +176,7 @@ The following functions are used internally within the package's Starlark script
 | `get_ocr_key_bundle_id` | Gets OCR key bundle ID | `plan`, `node_name` |
 | `get_ocr_key` | Gets OCR key details | `plan`, `node_name` |
 
-#### Job Management
+#### 📋 Job Management
 
 | Function | Description | Parameters |
 |----------|-------------|------------|
@@ -183,14 +186,14 @@ The following functions are used internally within the package's Starlark script
 | `create_dkg_job` | Creates a DKG job (v2.14 only) | Various parameters for DKG setup |
 | `create_ocr2vrf_job` | Creates an OCR2 VRF job (v2.14 only) | Various parameters for OCR2 VRF setup |
 
-#### DKG Specific (v2.14 Only)
+#### 🌉 DKG Specific (v2.14 Only)
 
 | Function | Description | Parameters |
 |----------|-------------|------------|
 | `create_dkg_encr_key` | Creates a DKG encryption key | `plan`, `node_name` |
 | `create_dkg_sign_key` | Creates a DKG signing key | `plan`, `node_name` |
 
-### Creating Custom Scripts
+### 📝 Creating Custom Scripts
 
 To leverage these internal functions, you'd need to create your own Starlark script:
 
@@ -237,10 +240,8 @@ kurtosis run ./setup_vrf_node.star --args-file myconfig.yaml
 
 ## 📝 Examples
 
-### Basic Node with Ganache
-
 <details>
-<summary>Click to expand</summary>
+<summary>Basic Node with Ganache</summary>
 
 ```yaml
 network:
@@ -257,10 +258,8 @@ chainlink_nodes:
 ```
 </details>
 
-### Production-like Setup
-
 <details>
-<summary>Click to expand</summary>
+<summary>Production-like Setup</summary>
 
 ```yaml
 network:
@@ -292,7 +291,8 @@ chainlink_nodes:
       password: "DatabaseBackup123!"
 ```
 </details>
+<br>
 
 ⭐ **Star this repo if you find it useful!** ⭐
 
-Built with ❤️ by the Blocktopus team
+Built with ❤️ by the Bloctopus team 🐙

@@ -1,0 +1,9 @@
+type            = "bootstrap"
+schemaVersion   = 1
+name            = "dkg-bootstrap"
+relay           = "evm"
+contractID      = "{{.DKG_CONTRACT_ADDRESS}}" # dkg contract address
+
+[relayConfig]
+chainID = "{{.CHAIN_ID}}"
+fromBlock = 0
