@@ -1,0 +1,30 @@
+############  OCR 2 job header  ############
+type            = "offchainreporting2"
+schemaVersion   = 1
+name            = "{{.JOB_NAME}}"
+maxTaskDuration = "30s"
+contractID = "{{.VRF_BEACON_ADDRESS}}" #the on‑chain VRF Beacon that the DON reports to 
+ocrKeyBundleID       = "{{.OCR_KEY_BUNDLE_ID}}" #chainlink keys ocr2 list 
+relay              = "evm"
+pluginType = "ocr2vrf"
+transmitterID        = "{{.ETH_ADDRESS}}" #eth key funded of the node (chainlink keys eth list )
+forwardingAllowed    = false
+contractConfigTrackerPollInterval = "15s"
+p2pv2Bootstrappers = [
+	"{{.BOOTSTRAP_PEER_ID}}@{{.BOOTSTRAP_PEER_ADDRESS}}:{{.BOOTSTRAP_PEER_PORT}}"
+]
+
+# 2. relayConfig – all per‑relay items must live inside this table
+[relayConfig]
+chainID = "{{.CHAIN_ID}}"
+
+
+# 3. pluginConfig – every VRF‑specific parameter now belongs here
+[pluginConfig]
+dkgEncryptionPublicKey = "{{.DKG_ENCRYPTION_PUBLIC_KEY}}"
+dkgSigningPublicKey    = "{{.DKG_SIGNING_PUBLIC_KEY}}"
+dkgKeyID               = "{{.DKG_KEY_ID}}" #of the dkg encr key above
+dkgContractAddress = "{{.DKG_CONTRACT_ADDRESS}}"
+
+vrfCoordinatorAddress = "{{.VRF_COORDINATOR_ADDRESS}}"
+linkEthFeedAddress ="{{.LINK_ETH_FEED_ADDRESS}}"
