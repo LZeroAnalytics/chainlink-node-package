@@ -1,0 +1,14 @@
+type = "{{.JOB_TYPE}}" # blockhashstore or bhf
+schemaVersion = 1
+name = "{{.JOB_TYPE}}"
+forwardingAllowed = false
+coordinatorV2Address = "{{.VRF_COORDINATOR_ADDRESS}}"
+coordinatorV2PlusAddress = "{{.VRF_COORDINATOR_ADDRESS}}"
+waitBlocks = 30
+lookbackBlocks = 200
+blockhashStoreAddress = "{{.BLOCKHASH_STORE_ADDRESS}}"
+batchBlockhashStoreAddress = "{{.BATCH_BLOCKHASH_STORE_ADDRESS}}"
+pollPeriod = "2s"
+runTimeout = "1m"
+evmChainID = "{{.ChainID}}"
+fromAddresses = ["{{.ETH_ADDRESS}}"]
