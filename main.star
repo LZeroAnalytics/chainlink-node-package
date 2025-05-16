@@ -1,27 +1,30 @@
 # Import the new package_io module
+input_parser = import_module("./src/package_io/input_parser.star")
 postgres = import_module("github.com/tiljrd/postgres-package/main.star")
-vrfv2plus = import_module("./src/vrfv2plus.star")
 dkg = import_module("./src/dkg(2_14-only).star")
+ocr2 = import_module("./src/ocr2vrf(2_14-only).star")
 vrfv2plus = import_module("./src/vrfv2plus.star")
 
 #Initialize chainlink node
 def run(plan, args = {}):
+    # Parse the configuration
+    config = input_parser.input_parser(plan, args)
     
     nodes_configs = {}
-    for node in args.chainlink_nodes:
+    for node in config.chainlink_nodes:
         # Create node database in postgres for each node
         postgres_output = create_node_database(plan, node.postgres, node.node_name) #TODO: parallelize login in postgres pakcage too to spin up multiple db at the same time
-        nodes_configs[node.node_name] = create_node_config(plan, node, postgres_output, args.network)
+        nodes_configs[node.node_name] = create_node_config(plan, node, postgres_output, config.network)
 
     #Deploy all nodes in parallel
     all_nodes = plan.add_services(
         configs = nodes_configs,
-        description = "Deploying " + str(len(args.chainlink_nodes)) + " Chainlink nodes in parallel"
+        description = "Deploying " + str(len(config.chainlink_nodes)) + " Chainlink nodes in parallel"
     )
 
     return struct(
         services = all_nodes,
-        nodes_configs = args.chainlink_nodes
+        nodes_configs = config.chainlink_nodes
     )
 
 
