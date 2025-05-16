@@ -1,6 +1,7 @@
 # Import the new package_io module
 postgres = import_module("github.com/tiljrd/postgres-package/main.star")
 vrfv2plus = import_module("./src/vrfv2plus.star")
+dkg = import_module("./src/dkg(2_14-only).star")
 
 #Initialize chainlink node
 def run(plan, args = {}):

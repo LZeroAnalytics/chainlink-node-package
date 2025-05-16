@@ -1,0 +1,22 @@
+############  DKG oracle job  ############
+type             = "offchainreporting2"
+schemaVersion    = 1
+name             = "dkg‑worker-{{.JOB_NAME}}"
+maxTaskDuration      = "30s"
+contractID      = "{{.DKG_CONTRACT_ADDRESS}}"
+ocrKeyBundleID   = "{{.OCR_KEY_BUNDLE_ID}}"       # `chainlink keys ocr2 list`
+p2pv2Bootstrappers = [
+	"{{.BOOTSTRAP_PEER_ID}}@{{.BOOTSTRAP_PEER_ADDRESS}}:{{.BOOTSTRAP_PEER_PORT}}"
+]
+relay = "evm"
+pluginType = "dkg"
+transmitterID = "{{.ETH_ADDRESS}}"
+
+[relayConfig]
+chainID = "{{.CHAIN_ID}}"
+
+# ---- DKG‑specific parameters ----
+[pluginConfig]
+EncryptionPublicKey = "{{.DKG_ENCRYPTION_PUBLIC_KEY}}"   # `chainlink keys dkg-encrypt create`
+SigningPublicKey    = "{{.DKG_SIGNING_PUBLIC_KEY}}"   # `chainlink keys dkg-sign   create`
+KeyID               = "{{.DKG_KEY_ID}}"
