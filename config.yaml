@@ -1,0 +1,18 @@
+network:
+  rpc: http://host.docker.internal:51009
+  ws: ws://host.docker.internal:51010
+  chain_id: "3151908"
+
+chainlink_nodes:
+  - node_name: "chainlink-node"
+    image_version: "latest"
+    keystore_pw: "T.tLHkcmwePT/p,]sYuntjwHKAsrhm#4eRs4LuKHwvHejWYAC2JP4M8HimDgCqZ5"
+    api_user: "admin@chain.link"
+    api_password: "Ku8Qp4xKq#GmK@fyNq7T"
+    postgres: 
+      user: "postgres"
+      password: "MyPassword123456!"
+      min_cpu: 10
+      max_cpu: 1000
+      min_memory: 32
+      max_memory: 1024
