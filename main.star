@@ -110,7 +110,7 @@ def create_vrf_keys(plan, node_name): #this cmd should be uneccessary, only work
     cmd = [
         "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
         # Convert to JSON format
-        "echo '{' && chainlink keys vrf create | grep -E '^(Compressed|Uncompressed)' | sed -e 's/\\(.*\\): \\(.*\\)/\"\\1\": \"\\2\"/' | sed -e '1s/^/  /' -e '2s/^/  /' -e '1s/$/,/' && echo '}'",
+        "echo '{' && chainlink keys vrf create | grep -E '^(Compressed|Uncompressed)' | sed -e 's/^ *//' -e 's/\\(.*\\): \\(.*\\)/\"\\1\": \"\\2\"/' | sed -e '1s/^/  /' -e '2s/^/  /' -e '1s/$/,/' && echo '}'",
     ]
     
     result = plan.exec(
