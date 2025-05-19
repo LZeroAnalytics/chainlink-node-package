@@ -1,6 +1,6 @@
-type = "{{.JOB_TYPE}}" # blockhashstore or bhf
+type = "blockhashstore"
 schemaVersion = 1
-name = "{{.JOB_TYPE}}"
+name = "blockhashstore"
 forwardingAllowed = false
 coordinatorV2Address = "{{.VRF_COORDINATOR_ADDRESS}}"
 coordinatorV2PlusAddress = "{{.VRF_COORDINATOR_ADDRESS}}"

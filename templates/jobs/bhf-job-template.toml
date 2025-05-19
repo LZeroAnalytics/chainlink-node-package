@@ -1,0 +1,15 @@
+type = "blockheaderfeeder"
+schemaVersion = 1
+name = "blockheaderfeeder"
+forwardingAllowed = false
+coordinatorV2Address = "{{.VRF_COORDINATOR_ADDRESS}}"
+waitBlocks = 256
+lookbackBlocks = 1_000
+blockhashStoreAddress = "{{.BLOCKHASH_STORE_ADDRESS}}"
+batchBlockhashStoreAddress = "{{.BATCH_BLOCKHASH_STORE_ADDRESS}}"
+pollPeriod = "10s"
+runTimeout = "30s"
+evmChainID = "{{.ChainID}}"
+fromAddresses = ["{{.ETH_ADDRESS}}"]
+getBlockhashesBatchSize = 50
+storeBlockhashesBatchSize = 10

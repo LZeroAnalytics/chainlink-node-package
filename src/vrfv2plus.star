@@ -1,14 +1,6 @@
-#Create bhs or bhf job on node
-def create_bhs_or_bhf_job(plan, job_type, vrf_coordinator_address, blockhash_store_address, batch_blockhash_store_address, eth_address, chain_id, node_name):
-    if job_type == "bhs":
-        job_type_str = "blockhashstore"
-    elif job_type == "bhf":
-        job_type_str = "blockheaderfeeder"
-    else:
-        fail("Invalid job type: " + job_type)
-
-    sed_cmd = "sed -i 's/{{.JOB_TYPE}}/%s/g; s/{{.VRF_COORDINATOR_ADDRESS}}/%s/g; s/{{.BLOCKHASH_STORE_ADDRESS}}/%s/g; s/{{.BATCH_BLOCKHASH_STORE_ADDRESS}}/%s/g; s/{{.ETH_ADDRESS}}/%s/g; s/{{.ChainID}}/%s/g;' /tmp/bhs-job.toml" % (
-        job_type_str,
+#Create bhs job on node
+def create_bhs_job(plan, vrf_coordinator_address, blockhash_store_address, batch_blockhash_store_address, eth_address, chain_id, node_name):
+    sed_cmd = "sed -i 's/{{.VRF_COORDINATOR_ADDRESS}}/%s/g; s/{{.BLOCKHASH_STORE_ADDRESS}}/%s/g; s/{{.BATCH_BLOCKHASH_STORE_ADDRESS}}/%s/g; s/{{.ETH_ADDRESS}}/%s/g; s/{{.ChainID}}/%s/g;' /tmp/bhs-job.toml" % (
         vrf_coordinator_address,
         blockhash_store_address,
         batch_blockhash_store_address,
@@ -18,9 +10,33 @@ def create_bhs_or_bhf_job(plan, job_type, vrf_coordinator_address, blockhash_sto
 
     cmd = [
         "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
-        "cp /templates/jobs/bhs-or-bhf-job-template.toml /tmp/bhs-job.toml &&",
+        "cp /templates/jobs/bhs-job-template.toml /tmp/bhs-job.toml &&",
         sed_cmd,
         "&& chainlink jobs create /tmp/bhs-job.toml"
+    ]
+
+    plan.exec(
+        service_name = node_name,
+        recipe = ExecRecipe(
+            command = ["/bin/bash", "-c", " ".join(cmd)]
+        )
+    )
+
+#Create bhf job on node
+def create_bhf_job(plan, vrf_coordinator_address, blockhash_store_address, batch_blockhash_store_address, eth_address, chain_id, node_name):
+    sed_cmd = "sed -i 's/{{.VRF_COORDINATOR_ADDRESS}}/%s/g; s/{{.BLOCKHASH_STORE_ADDRESS}}/%s/g; s/{{.BATCH_BLOCKHASH_STORE_ADDRESS}}/%s/g; s/{{.ETH_ADDRESS}}/%s/g; s/{{.ChainID}}/%s/g;' /tmp/bhf-job.toml" % (
+        vrf_coordinator_address,
+        blockhash_store_address,
+        batch_blockhash_store_address,
+        eth_address,
+        chain_id
+    )
+
+    cmd = [
+        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
+        "cp /templates/jobs/bhf-job-template.toml /tmp/bhf-job.toml &&",
+        sed_cmd,
+        "&& chainlink jobs create /tmp/bhf-job.toml"
     ]
 
     plan.exec(
