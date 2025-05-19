@@ -1,1 +1,24 @@
 name: "github.com/LZeroAnalytics/chainlink-node-package"
+description: |
+  Chainlink Node
+  =============
+  This Kurtosis package instantiates a Chainlink node environment with PostgreSQL databases for both the node and the transaction manager. It supports multiple node configurations and deployment types.
+
+  Prerequisites
+  -------------
+  - Access to an EVM-compatible blockchain with RPC endpoints
+  - Chainlink node operator credentials
+  - API credentials for external data feeds (if using external adapters)
+
+  Configuration
+  -------------
+  To configure this package, you'll need to provide the following information:
+  - `rpc_url`: The RPC URL for the blockchain to connect to
+  - `chain_id`: The chain ID of the blockchain network
+  - `operator_address`: The Ethereum address of the node operator
+  - `operator_private_key`: The private key for the operator address
+  - `postgres_password`: Password for the PostgreSQL databases
+  - `node_count`: Number of Chainlink nodes to deploy (default: 1)
+  - `external_adapters`: Configuration for external adapters (optional)
+  - `p2p_config`: Peer-to-peer communication settings (optional)
+  - `ocr_config`: Off-Chain Reporting configuration (optional)
