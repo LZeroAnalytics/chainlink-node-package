@@ -18,6 +18,11 @@ HTTPSPort=0
 # --- EVM chain --------------------------------------------------------------
 [[EVM]]
 ChainID = "{{.CHAIN_ID}}"
+FinalityDepth = 1
+
+[EVM.GasEstimator]
+LimitDefault  = 6000000
+LimitMax      = 12000000 
 
 [[EVM.Nodes]]
 Name    = "bloctopus"
