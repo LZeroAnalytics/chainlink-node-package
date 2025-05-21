@@ -8,7 +8,7 @@ NETWORK_CONFIG_PARAMS = [
 
 CHAINLINK_NODE_PARAMS = [
     "node_name",
-    "image_version",
+    "image",
     "keystore_pw",
     "api_user",
     "api_password",

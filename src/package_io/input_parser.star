@@ -44,7 +44,7 @@ def input_parser(plan, input_args):
         nodes_structs.append(
             struct(
                 node_name = node["node_name"],
-                image_version = node["image_version"],
+                image = node["image"],
                 keystore_pw = node["keystore_pw"],
                 api_user = node["api_user"],
                 api_password = node["api_password"],
@@ -101,8 +101,8 @@ def validate_config(config):
         
         if not node["node_name"]:
             fail("{0}.node_name is required".format(node_label))
-        if not node["image_version"]:
-            fail("{0}.image_version is required".format(node_label))
+        if not node["image"]:
+            fail("{0}.image is required".format(node_label))
         if len(node["keystore_pw"]) < 16:
             fail("{0}.keystore_pw must be at least 16 characters".format(node_label))
         if not node["api_user"]:
@@ -114,7 +114,7 @@ def default_node_config():
     """Return a default node configuration"""
     return {
         "node_name": "chainlink-node",
-        "image_version": constants.DEFAULT_CHAINLINK_IMAGE_VERSION,
+        "image": constants.DEFAULT_CHAINLINK_IMAGE,
         "keystore_pw": constants.DEFAULT_KEYSTORE_PW,
         "api_user": constants.DEFAULT_CHAINLINK_API_USER,
         "api_password": constants.DEFAULT_CHAINLINK_API_PASSWORD,

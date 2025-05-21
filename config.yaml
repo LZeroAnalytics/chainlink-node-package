@@ -5,7 +5,7 @@ network:
 
 chainlink_nodes:
   - node_name: "chainlink-node"
-    image_version: "latest"
+    image: "smartcontract/chainlink:latest"
     keystore_pw: "T.tLHkcmwePT/p,]sYuntjwHKAsrhm#4eRs4LuKHwvHejWYAC2JP4M8HimDgCqZ5"
     api_user: "admin@chain.link"
     api_password: "Ku8Qp4xKq#GmK@fyNq7T"

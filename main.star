@@ -72,7 +72,7 @@ def create_node_config(plan, chainlink_configs, postgres_output, chain_configs):
     jobs_templates_art = plan.upload_files( src = "./templates/jobs", name = "job-templates-"+chainlink_configs.node_name)
 
     return ServiceConfig(
-        image = "smartcontract/chainlink:"+chainlink_configs.image_version,
+        image = chainlink_configs.image,
         files = { 
             "/chainlink": tomls_art, 
             "/templates/jobs": jobs_templates_art

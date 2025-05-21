@@ -5,7 +5,7 @@ SERVICE_TYPE = struct(
 )
 
 # Default images
-DEFAULT_CHAINLINK_IMAGE_VERSION = "smartcontract/chainlink:2.23.0"
+DEFAULT_CHAINLINK_IMAGE = "smartcontract/chainlink:2.23.0"
 
 # Default credentials
 DEFAULT_KEYSTORE_PW = "T.tLHkcmwePT/p,]sYuntjwHKAsrhm#4eRs4LuKHwvHejWYAC2JP4M8HimDgCqZ5"

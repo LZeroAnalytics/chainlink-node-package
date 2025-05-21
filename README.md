@@ -64,7 +64,7 @@ network:
 
 chainlink_nodes:
   - node_name: "chainlink-1"
-    image_version: "latest"
+    image: "smartcontract/chainlink:latest"
     keystore_pw: "AtLeast16Characters!"
     api_user: "admin@chain.link"
     api_password: "StrongPassword123!"
@@ -104,7 +104,7 @@ The package provides a powerful input parser that auto-fills most parameters. Yo
 | Parameter     | Required | Default | Description |
 |---------------|----------|---------|-------------|
 | `node_name`   | ✅ Yes   | - | Unique name for the node |
-| `image_version` | ❌ No  | `latest` | Chainlink image version |
+| `image` | ❌ No  | `smartcontract/chainlink:latest` | Chainlink image version |
 | `keystore_pw` | ❌ No  | - | Node keystore password (min 16 chars) |
 | `api_user`    | ❌ No   | - | API/GUI username |
 | `api_password`| ❌ No   | - | API/GUI password |
@@ -251,7 +251,7 @@ network:
 
 chainlink_nodes:
   - node_name: "chainlink-local"
-    image_version: "latest"
+    image: "smartcontract/chainlink:latest"
     keystore_pw: "SuperSecretPassword123!"
     api_user: "admin@example.com"
     api_password: "AdminPassword123!"
@@ -269,7 +269,7 @@ network:
 
 chainlink_nodes:
   - node_name: "vrf-primary"
-    image_version: "2.23.0"
+    image: "smartcontract/chainlink:2.23.0"
     keystore_pw: "VeryLongPasswordForSecurity123!!!"
     api_user: "admin@chain.link"
     api_password: "StrongAdminPasswordForPrimary!"
@@ -282,7 +282,7 @@ chainlink_nodes:
       max_memory: 2048
       
   - node_name: "vrf-backup"
-    image_version: "2.23.0"
+    image: "smartcontract/chainlink:2.23.0"
     keystore_pw: "DifferentPasswordForBackupNode456!!!"
     api_user: "admin@chain.link"
     api_password: "StrongAdminPasswordForBackup!"
