@@ -180,6 +180,12 @@ The following functions are used internally within the package's Starlark script
 
 | Function | Description | Parameters |
 |----------|-------------|------------|
+| `create_ocr_job` | Creates an OCR Data Feed job | Various parameters for OCR configuration |
+| `create_direct_request_job` | Creates a Direct Request job | Various parameters for Direct Request configuration |
+| `create_cron_job` | Creates a time-based Cron job | Various parameters for Cron job configuration |
+| `create_keeper_job` | Creates a Keeper job for automation | Various parameters for Keeper configuration |
+| `create_webhook_job` | Creates a Webhook job for external triggers | Various parameters for Webhook configuration |
+| `trigger_webhook_job` | Triggers a Webhook job via HTTP | `plan`, `node_name`, `job_id`, `payload` |
 | `create_bootstrap_job` | Creates a DKG bootstrap job | `plan`, `dkg_contract_address`, `chain_id`, `node_name` |
 | `create_bhs_or_bhf_job` | Creates a BHS or BHF job | Various parameters for job configuration |
 | `create_vrfv2plus_job` | Creates a VRF v2 Plus job | Various parameters for VRF configuration |
