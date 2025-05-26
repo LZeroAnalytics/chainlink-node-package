@@ -1,0 +1,29 @@
+type            = "offchainreporting"
+schemaVersion   = 1
+name            = "{{.JOB_NAME}}"
+contractAddress = "{{.CONTRACT_ADDRESS}}"
+p2pPeerID       = "{{.P2P_PEER_ID}}"
+p2pBootstrapPeers = [
+  "{{.BOOTSTRAP_PEER_ID}}@{{.BOOTSTRAP_PEER_ADDRESS}}:{{.BOOTSTRAP_PEER_PORT}}"
+]
+isBootstrapPeer = {{.IS_BOOTSTRAP}}
+keyBundleID     = "{{.OCR_KEY_BUNDLE_ID}}"
+monitoringEndpoint = "{{.MONITORING_ENDPOINT}}"
+transmitterAddress = "{{.ETH_ADDRESS}}"
+observationSource = """
+    // Observation source pipeline
+    fetch    [type=http method=GET url="{{.FETCH_URL}}"];
+    parse    [type=jsonparse path="{{.PARSE_PATH}}" data="$(fetch)"];
+    multiply [type=multiply times={{.MULTIPLY_FACTOR}} value="$(parse)"];
+    submit   [type=median index=0 value="$(multiply)"]
+
+    fetch -> parse -> multiply -> submit
+"""
+externalJobID = "{{.EXTERNAL_JOB_ID}}"
+observationTimeout = "20s"
+blockchainTimeout = "20s"
+contractConfigTrackerSubscribeInterval = "2m"
+contractConfigTrackerPollInterval = "1m"
+contractConfigConfirmations = 3
+createdAt = 0
+evmChainID = "{{.CHAIN_ID}}"

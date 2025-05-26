@@ -1,0 +1,6 @@
+type            = "keeper"
+schemaVersion   = 1
+name            = "{{.JOB_NAME}}"
+evmChainID      = "{{.CHAIN_ID}}"
+contractAddress = "{{.KEEPER_REGISTRY_ADDRESS}}"
+fromAddress     = "{{.ETH_ADDRESS}}"
