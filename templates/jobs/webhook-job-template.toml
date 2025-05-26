@@ -1,0 +1,19 @@
+type            = "webhook"
+schemaVersion   = 1
+name            = "{{.JOB_NAME}}"
+evmChainID      = "{{.CHAIN_ID}}"
+observationSource = """
+    parse   [type="jsonparse" 
+            path="{{.PARSE_PATH}}" 
+            data="$(jobRun.requestBody)"]
+
+    encode  [type="ethabiencode" 
+            abi="{{.FUNCTION_SIGNATURE}}" 
+            data="{{.FUNCTION_PARAMS}}"]
+
+    tx      [type="ethtx" 
+            to="{{.TARGET_CONTRACT}}" 
+            data="$(encode)"]
+
+    parse -> encode -> tx
+"""

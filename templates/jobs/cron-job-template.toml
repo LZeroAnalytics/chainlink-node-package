@@ -1,0 +1,15 @@
+type            = "cron"
+schemaVersion   = 1
+name            = "{{.JOB_NAME}}"
+schedule        = "{{.CRON_SCHEDULE}}"
+evmChainID      = "{{.CHAIN_ID}}"
+observationSource = """
+    encode   [type="ethabiencode" 
+             abi="{{.FUNCTION_SIGNATURE}}"]
+
+    tx       [type="ethtx" 
+             to="{{.TARGET_CONTRACT}}" 
+             data="$(encode)"]
+
+    encode -> tx
+"""
