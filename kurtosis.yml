@@ -6,19 +6,29 @@ description: |
 
   Prerequisites
   -------------
-  - Access to an EVM-compatible blockchain with RPC endpoints
+  - Access to an EVM-compatible blockchain with RPC and WebSocket endpoints and chainid
   - Chainlink node operator credentials
   - API credentials for external data feeds (if using external adapters)
 
   Configuration
   -------------
   To configure this package, you'll need to provide the following information:
-  - `rpc_url`: The RPC URL for the blockchain to connect to
-  - `chain_id`: The chain ID of the blockchain network
-  - `operator_address`: The Ethereum address of the node operator
-  - `operator_private_key`: The private key for the operator address
-  - `postgres_password`: Password for the PostgreSQL databases
-  - `node_count`: Number of Chainlink nodes to deploy (default: 1)
-  - `external_adapters`: Configuration for external adapters (optional)
-  - `p2p_config`: Peer-to-peer communication settings (optional)
-  - `ocr_config`: Off-Chain Reporting configuration (optional)
+  - network:
+    rpc: The RPC URL for the blockchain to connect to
+    ws: The WebSocket URL for the blockchain to connect to
+    chain_id: The chain ID of the blockchain network
+
+  - chainlink_nodes: List of Chainlink nodes to deploy
+    - node_name: Name of the Chainlink node
+      image: "smartcontract/chainlink:latest"
+      keystore_pw: "Password for the keystore"
+      api_user: "API user"
+      api_password: "API password"
+      postgres: 
+        user: "postgres"
+        password: "Password for the PostgreSQL database"
+        min_cpu: "Minimum CPU for the PostgreSQL database"
+        max_cpu: "Maximum CPU for the PostgreSQL database"
+        min_memory: "Minimum memory for the PostgreSQL database"
+        max_memory: "Maximum memory for the PostgreSQL database"
+    ... add more nodes as needed

@@ -31,7 +31,7 @@ def run(plan, args = {}):
 def create_node_database(plan, postgres_configs, node_name):
     postgres_output = postgres.run(
         plan,
-        service_name = "postgres-chainlink-"+node_name,
+        service_name = "postgres-"+node_name,
         user = postgres_configs.user,
         password = postgres_configs.password,
         min_cpu = postgres_configs.min_cpu,
