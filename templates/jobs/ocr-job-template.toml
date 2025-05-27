@@ -12,10 +12,10 @@ monitoringEndpoint = "{{.MONITORING_ENDPOINT}}"
 transmitterAddress = "{{.ETH_ADDRESS}}"
 observationSource = """
     // Observation source pipeline
-    fetch    [type=http method=GET url="{{.FETCH_URL}}"];
-    parse    [type=jsonparse path="{{.PARSE_PATH}}" data="$(fetch)"];
-    multiply [type=multiply times={{.MULTIPLY_FACTOR}} value="$(parse)"];
-    submit   [type=median index=0 value="$(multiply)"]
+    fetch    [type="http" method="GET" url="{{.FETCH_URL}}" allowUnrestrictedNetworkAccess="true"];
+    parse    [type="jsonparse" path="{{.PARSE_PATH}}" data="$(fetch)"];
+    multiply [type="multiply" times={{.MULTIPLY_FACTOR}} value="$(parse)"];
+    submit   [type="median" index=0 value="$(multiply)"]
 
     fetch -> parse -> multiply -> submit
 """

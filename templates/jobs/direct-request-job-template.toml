@@ -20,17 +20,22 @@ observationSource = """
                 path="{{.PARSE_PATH}}" 
                 data="$(fetch)"]
 
+    multiply    [type="multiply" 
+                input="$(parse)" 
+                times={{.MULTIPLY_FACTOR}}]
+
     encode_data [type="ethabiencode" 
-                abi="(bytes32 requestId, bytes data)" 
-                data="{\\"requestId\\": $(decode_log.requestId), \\"data\\": $(parse)}"]
+                abi="(bytes32 requestId, uint256 value)" 
+                data="{\\"requestId\\": $(decode_log.requestId), \\"value\\": $(multiply)}"]
 
     encode_tx   [type="ethabiencode" 
-                abi="fulfillOracleRequest(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)" 
+                abi="fulfillOracleRequest2(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)" 
                 data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\": $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_data)}"]
 
     submit_tx   [type="ethtx" 
                 to="{{.OPERATOR_ADDRESS}}" 
-                data="$(encode_tx)"]
+                data="$(encode_tx)" 
+                gasLimit="{{.GAS_LIMIT}}"]
 
-    decode_log -> fetch -> parse -> encode_data -> encode_tx -> submit_tx
+    decode_log -> fetch -> parse -> multiply -> encode_data -> encode_tx -> submit_tx
 """

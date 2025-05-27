@@ -4,3 +4,27 @@ name            = "{{.JOB_NAME}}"
 evmChainID      = "{{.CHAIN_ID}}"
 contractAddress = "{{.KEEPER_REGISTRY_ADDRESS}}"
 fromAddress     = "{{.ETH_ADDRESS}}"
+observationSource = """
+    encode_check_upkeep_tx   [type=ethabiencode 
+                             abi="checkUpkeep(uint256 id, address from)" 
+                             data="{\\"id\\":$(jobSpec.upkeepID),\\"from\\":$(jobSpec.fromAddress)}"]
+
+    check_upkeep_tx          [type=ethcall 
+                             contract="$(jobSpec.contractAddress)" 
+                             data="$(encode_check_upkeep_tx)"]
+
+    decode_check_upkeep_tx   [type=ethabidecode 
+                             abi="(bool upkeepNeeded, bytes performData)" 
+                             data="$(check_upkeep_tx)"]
+
+    encode_perform_upkeep_tx [type=ethabiencode 
+                             abi="performUpkeep(uint256 id, bytes calldata performData)" 
+                             data="{\\"id\\":$(jobSpec.upkeepID),\\"performData\\":$(decode_check_upkeep_tx.performData)}"]
+
+    perform_upkeep_tx        [type=ethtx 
+                             to="$(jobSpec.contractAddress)" 
+                             from="$(jobSpec.fromAddress)" 
+                             data="$(encode_perform_upkeep_tx)"]
+
+    encode_check_upkeep_tx -> check_upkeep_tx -> decode_check_upkeep_tx -> encode_perform_upkeep_tx -> perform_upkeep_tx
+"""

@@ -2,18 +2,24 @@ type            = "webhook"
 schemaVersion   = 1
 name            = "{{.JOB_NAME}}"
 evmChainID      = "{{.CHAIN_ID}}"
+externalJobID   = "{{.EXTERNAL_JOB_ID}}"
 observationSource = """
     parse   [type="jsonparse" 
             path="{{.PARSE_PATH}}" 
             data="$(jobRun.requestBody)"]
 
+    multiply [type="multiply" 
+             input="$(parse)" 
+             times={{.MULTIPLY_FACTOR}}]
+
     encode  [type="ethabiencode" 
             abi="{{.FUNCTION_SIGNATURE}}" 
-            data="{{.FUNCTION_PARAMS}}"]
+            data="{\\"0\\":$(multiply)}"]
 
     tx      [type="ethtx" 
             to="{{.TARGET_CONTRACT}}" 
-            data="$(encode)"]
+            data="$(encode)" 
+            gasLimit="{{.GAS_LIMIT}}"]
 
-    parse -> encode -> tx
+    parse -> multiply -> encode -> tx
 """

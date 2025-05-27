@@ -5,11 +5,13 @@ schedule        = "{{.CRON_SCHEDULE}}"
 evmChainID      = "{{.CHAIN_ID}}"
 observationSource = """
     encode   [type="ethabiencode" 
-             abi="{{.FUNCTION_SIGNATURE}}"]
+             abi="{{.FUNCTION_SIGNATURE}}" 
+             data="{}"]
 
     tx       [type="ethtx" 
              to="{{.TARGET_CONTRACT}}" 
-             data="$(encode)"]
+             data="$(encode)" 
+             gasLimit="{{.GAS_LIMIT}}"]
 
     encode -> tx
 """
