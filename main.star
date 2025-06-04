@@ -4,9 +4,13 @@ postgres = import_module("github.com/tiljrd/postgres-package/main.star")
 dkg = import_module("./src/dkg(2_14-only).star")
 ocr2 = import_module("./src/ocr2vrf(2_14-only).star")
 vrfv2plus = import_module("./src/vrfv2plus.star")
+node_utils = import_module("./src/node_utils.star")
 
 #Initialize chainlink node
 def run(plan, args = {}):
+    return deploy_nodes(plan, args)
+
+def deploy_nodes(plan, args):
     # Parse the configuration
     config = input_parser.input_parser(plan, args)
     
@@ -26,26 +30,6 @@ def run(plan, args = {}):
         services = all_nodes,
         nodes_configs = config.chainlink_nodes
     )
-
-
-def create_node_database(plan, postgres_configs, node_name):
-    postgres_output = postgres.run(
-        plan,
-        service_name = "postgres-"+node_name,
-        user = postgres_configs.user,
-        password = postgres_configs.password,
-        min_cpu = postgres_configs.min_cpu,
-        max_cpu = postgres_configs.max_cpu,
-        min_memory = postgres_configs.min_memory,
-        max_memory = postgres_configs.max_memory,
-        extra_env_vars = {
-            "POSTGRES_INITDB_ARGS": "-E UTF8 --locale=C"
-        }
-    )
-
-    return postgres_output
-
-
 # Create a ServiceConfig for a chainlink node without adding it
 def create_node_config(plan, chainlink_configs, postgres_output, chain_configs):
     config_subs = {
@@ -90,143 +74,19 @@ def create_node_config(plan, chainlink_configs, postgres_output, chain_configs):
         ],
     )
 
-def _seed_read_only_admin(plan, api_user, api_password, node_name):
-    cmd = [
-        "chainlink", "admin", "users", "create",
-        "--api-email", api_user,
-        "--api-password", api_password,
-        "--role", "admin"
-    ]
-    
-    plan.exec(
-        service_name = node_name,
-        recipe = ExecRecipe(
-            command = ["/bin/bash", "-c", " ".join(cmd)]
-        )
+def create_node_database(plan, postgres_configs, node_name):
+    postgres_output = postgres.run(
+        plan,
+        service_name = "postgres-"+node_name,
+        user = postgres_configs.user,
+        password = postgres_configs.password,
+        min_cpu = postgres_configs.min_cpu,
+        max_cpu = postgres_configs.max_cpu,
+        min_memory = postgres_configs.min_memory,
+        max_memory = postgres_configs.max_memory,
+        extra_env_vars = {
+            "POSTGRES_INITDB_ARGS": "-E UTF8 --locale=C"
+        }
     )
 
-# creates vrfv2plus key on node and returns public key
-def create_vrf_keys(plan, node_name): #this cmd should be uneccessary, only works with v2 vrf, now vrf key si created with DKG and automatically smbitted on chain in the coordinator address
-    cmd = [
-        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
-        # Convert to JSON format
-        "echo '{' && chainlink keys vrf create | grep -E '^(Compressed|Uncompressed)' | sed -e 's/^ *//' -e 's/\\(.*\\): *\\(.*\\)/\"\\1\": \"\\2\"/' | sed -e '1s/^/  /' -e '2s/^/  /' -e '1s/$/,/' && echo '}'",
-    ]
-    
-    result = plan.exec(
-        service_name = node_name,
-        recipe = ExecRecipe(
-            command = ["/bin/bash", "-c", " ".join(cmd)],
-            extract = {
-                "compressed": "fromjson | .Compressed",
-                "uncompressed": "fromjson | .Uncompressed"
-            }
-        )
-    )
-
-    return struct(
-        compressed = result["extract.compressed"],
-        uncompressed = result["extract.uncompressed"]
-    )
-
-# reads first P2P key and returns its libp2p PeerID string.
-def get_p2p_peer_id(plan, node_name):
-    cmd = [
-        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
-        # produce {"peer":"<ID>"} on stdout
-        "echo '{\"peer\":\"'$(chainlink keys p2p list | awk '/Peer ID:/ {print substr($3,5)}' | head -n1)'\"}'"
-    ]
-
-    res = plan.exec(
-        service_name = node_name,
-        recipe = ExecRecipe(
-            command = ["/bin/bash", "-c", " ".join(cmd)],
-            extract = { "peer": "fromjson | .peer" }
-        )
-    )
-
-    return res["extract.peer"]
-
-# returns first EVM key address (used by node to sign on-chain transactions)
-def get_eth_key(plan, node_name):
-    cmd = [
-        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
-        # emit {"eth":"<ADDRESS>"}  — one‑liner JSON
-        "echo '{\"eth\":\"'$(chainlink keys eth list | awk '/Address:/ {print $2}' | head -n1)'\"}'"
-    ]
-
-    res = plan.exec(
-        service_name = node_name,
-        recipe = ExecRecipe(
-            command  = ["/bin/bash", "-c", " ".join(cmd)],
-            extract  = { "eth": "fromjson | .eth" },
-        ),
-    )
-
-    return res["extract.eth"]
-
-#Gets OCR key bundle ID
-def get_ocr_key_bundle_id(plan, node_name):
-    cmd = [
-        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
-        # emit {"ocr_key_bundle_id":"<ID>"}  — one‑liner JSON
-        "echo '{\"ocr_key_bundle_id\":\"'$(chainlink keys ocr2 list | awk '/ID:/ {print $2}' | head -n1)'\"}'"
-    ]
-
-    res = plan.exec(
-        service_name = node_name,
-        recipe = ExecRecipe(
-            command  = ["/bin/bash", "-c", " ".join(cmd)],
-            extract  = { "ocr_key_bundle_id": "fromjson | .ocr_key_bundle_id" },
-        ),
-    )   
-
-    return res["extract.ocr_key_bundle_id"]
-
-def get_ocr_key(plan, node_name):
-    cmd = [
-        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&", # quiet login
-        "echo '{\"on_chain_key\":\"0x'$(chainlink keys ocr2 list | awk '/On-chain pubkey:/ {print substr($3,12)}')'\",",
-        "\"off_chain_key\":\"'$(chainlink keys ocr2 list | awk '/Off-chain pubkey:/ {print substr($3,13)}')'\",", 
-        "\"config_key\":\"'$(chainlink keys ocr2 list | awk '/Config pubkey:/ {print substr($3,13)}')'\"}'"
-    ]
-    
-    result = plan.wait(
-        service_name = node_name,
-        recipe = ExecRecipe(
-            command  = ["/bin/bash", "-c", " ".join(cmd)],
-            extract  = { 
-                "on_chain_key": "fromjson | .on_chain_key",
-                "off_chain_key": "fromjson | .off_chain_key",
-                "config_key": "fromjson | .config_key"
-            },
-        ),
-        field = "code",
-        assertion = "==",
-        target_value = 0,
-        interval = "5s",
-        timeout = "30s",
-        description = "waiting for OCR key command to succeed"
-    )
-    
-    return struct  (
-        on_chain_key = result["extract.on_chain_key"],
-        off_chain_key = result["extract.off_chain_key"],
-        config_key = result["extract.config_key"]
-    )
-
-def create_bootstrap_job(plan, dkg_contract_address, chain_id, node_name):
-    
-    cmd = [
-        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
-        "cp /templates/jobs/dkg-bootstrap-job-template.toml /tmp/bootstrap-job.toml &&",
-        "sed -i 's/{{.DKG_CONTRACT_ADDRESS}}/%s/g; s/{{.CHAIN_ID}}/%s/g;' /tmp/bootstrap-job.toml" % (dkg_contract_address, chain_id),
-        "&& chainlink jobs create /tmp/bootstrap-job.toml"
-    ]
-
-    plan.exec(
-        service_name = node_name,
-        recipe = ExecRecipe(
-            command = ["/bin/bash", "-c", " ".join(cmd)]
-        )
-    )
+    return postgres_output
