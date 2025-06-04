@@ -1,0 +1,20 @@
+type = "offchainreporting2"
+name = "OCR2 Automation - {{.REGISTRY_ADDRESS}}"
+schemaVersion = 1
+contractID = "{{.REGISTRY_ADDRESS}}"
+contractConfigTrackerPollInterval = "15s"
+ocrKeyBundleID = "{{.OCR2_KEY_BUNDLE}}"
+transmitterID = "{{.TRANSMITTER_ADDRESS}}"
+relay = "evm"
+pluginType = "ocr2automation"
+p2pv2Bootstrappers = ["{{.BOOTSTRAP_PEERS}}"]
+
+[relayConfig]
+chainID = "{{.CHAIN_ID}}"
+
+[pluginConfig]
+contractVersion = "{{.CONTRACT_VERSION}}"
+maxServiceWorkers = 100
+cacheEvictionInterval = "1s"
+#TODO add mercory support for Sub-second price triggers & real-time market data access 
+# mercuryCredentialName = "%s"

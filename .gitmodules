@@ -1,0 +1,3 @@
+[submodule "src/ocr/libocr"]
+	path = src/ocr/libocr
+	url = https://github.com/smartcontractkit/libocr.git
