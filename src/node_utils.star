@@ -142,7 +142,7 @@ def create_job(plan, node_name, template_name, substitutions):
     for key, value in substitutions.items():
         sed_replacements.append("s/{{.%s}}/%s/g" % (key, value))
     
-    sed_cmd = "sed -i '%s' /tmp/%s.toml" % ("; ".join(sed_replacements), template_name)
+    sed_cmd = "sed -i '%s' /tmp/%s.toml" % ("; ".join(sed_replacements), job_name)
     
     cmd = [
         "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",

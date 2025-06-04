@@ -4,6 +4,7 @@ postgres = import_module("github.com/tiljrd/postgres-package/main.star")
 dkg = import_module("./src/dkg(2_14-only).star")
 ocr2 = import_module("./src/ocr2vrf(2_14-only).star")
 vrfv2plus = import_module("./src/vrfv2plus.star")
+automations = import_module("./src/package_io/automation.star")
 node_utils = import_module("./src/node_utils.star")
 
 #Initialize chainlink node
