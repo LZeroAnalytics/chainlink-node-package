@@ -69,3 +69,31 @@ def create_vrfv2plus_job(plan, vrf_coordinator_address, batch_coordinator_addres
             command = ["/bin/bash", "-c", " ".join(cmd)]
         )
     )
+
+# VRF-specific utility functions for Chainlink nodes
+def create_vrf_keys(plan, node_name):
+    """Creates vrfv2plus key on node and returns public key.
+    Note: this cmd should be unnecessary, only works with v2 vrf, 
+    now vrf key is created with DKG and automatically submitted on chain in the coordinator address
+    """
+    cmd = [
+        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
+        # Convert to JSON format
+        "echo '{' && chainlink keys vrf create | grep -E '^(Compressed|Uncompressed)' | sed -e 's/^ *//' -e 's/\\(.*\\): *\\(.*\\)/\"\\1\": \"\\2\"/' | sed -e '1s/^/  /' -e '2s/^/  /' -e '1s/$/,/' && echo '}'",
+    ]
+    
+    result = plan.exec(
+        service_name = node_name,
+        recipe = ExecRecipe(
+            command = ["/bin/bash", "-c", " ".join(cmd)],
+            extract = {
+                "compressed": "fromjson | .Compressed",
+                "uncompressed": "fromjson | .Uncompressed"
+            }
+        )
+    )
+
+    return struct(
+        compressed = result["extract.compressed"],
+        uncompressed = result["extract.uncompressed"]
+    )
