@@ -1,0 +1,19 @@
+type = "offchainreporting2"
+schemaVersion = 1
+name = "ccip-price-registry-{{.CHAIN_SELECTOR}}"
+maxTaskDuration = "30s"
+contractID = "{{.PRICE_REGISTRY_ADDRESS}}"
+contractConfigTrackerPollInterval = "15s"
+ocrKeyBundleID = "{{.OCR2_KEY_BUNDLE}}"
+transmitterID = "{{.TRANSMITTER_ADDRESS}}"
+p2pv2Bootstrappers = [{{.BOOTSTRAP_PEERS}}]
+relay = "evm"
+pluginType = "ccip-price-registry"
+pluginConfig = """
+chainSelector = {{.CHAIN_SELECTOR}}
+tokenAddresses = ["{{.TOKEN_ADDRESSES}}"]
+priceUpdateFrequency = "1m"
+"""
+
+[relayConfig]
+chainID = {{.CHAIN_SELECTOR}} 

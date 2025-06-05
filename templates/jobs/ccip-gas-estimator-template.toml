@@ -1,0 +1,18 @@
+type = "offchainreporting2"
+schemaVersion = 1
+name = "ccip-gas-estimator-{{.DEST_CHAIN_SELECTOR}}"
+maxTaskDuration = "30s"
+contractID = "{{.PRICE_REGISTRY_ADDRESS}}"
+contractConfigTrackerPollInterval = "15s"
+ocrKeyBundleID = "{{.OCR2_KEY_BUNDLE}}"
+transmitterID = "{{.TRANSMITTER_ADDRESS}}"
+p2pv2Bootstrappers = [{{.BOOTSTRAP_PEERS}}]
+relay = "evm"
+pluginType = "ccip-gas-estimator"
+pluginConfig = """
+destChainSelector = {{.DEST_CHAIN_SELECTOR}}
+gasUpdateFrequency = "30s"
+"""
+
+[relayConfig]
+chainID = {{.DEST_CHAIN_SELECTOR}} 
