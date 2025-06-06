@@ -19,7 +19,7 @@ def deploy_nodes(plan, args):
     for node in config.chainlink_nodes:
         # Create node database in postgres for each node
         postgres_output = create_node_database(plan, node.postgres, node.node_name) #TODO: parallelize login in postgres pakcage too to spin up multiple db at the same time
-        nodes_configs[node.node_name] = create_node_config(plan, node, postgres_output, config.network)
+        nodes_configs[node.node_name] = create_node_config(plan, node, postgres_output, config.chains)
 
     #Deploy all nodes in parallel
     all_nodes = plan.add_services(
@@ -31,13 +31,25 @@ def deploy_nodes(plan, args):
         services = all_nodes,
         nodes_configs = config.chainlink_nodes
     )
+
 # Create a ServiceConfig for a chainlink node without adding it
-def create_node_config(plan, chainlink_configs, postgres_output, chain_configs):
+def create_node_config(plan, chainlink_configs, postgres_output, chains):
+    # Validate at least one chain
+    if len(chains) == 0:
+        fail("At least one chain must be provided")
+    
+    # Convert chains to template format
+    chains_for_template = []
+    for chain in chains:
+        chains_for_template.append({
+            "ChainID": str(chain.chain_id),
+            "HTTPURL": chain.rpc,
+            "WSURL": chain.ws
+        })
+
     config_subs = {
-        "CHAIN_ID":    chain_configs.chain_id,
-        "RPC_URL":    chain_configs.rpc,
-        "WS_URL":     chain_configs.ws,
-        "URL":    postgres_output.url,
+        "CHAINS": chains_for_template,
+        "URL": postgres_output.url,
         "KEYSTORE_PW": chainlink_configs.keystore_pw,
         "CHAINLINK_API_PASSWORD": chainlink_configs.api_password,
         "CHAINLINK_API_EMAIL": chainlink_configs.api_user,
