@@ -28,7 +28,7 @@ LimitDefault = 6000000
 FeeCapDefault = '200 gwei'
 
 [[EVM.Nodes]]
-Name = "bloctopus"
+Name = "chain-{{.ChainID}}-node"
 WSURL = "{{.WSURL}}"
 HTTPURL = "{{.HTTPURL}}"
 

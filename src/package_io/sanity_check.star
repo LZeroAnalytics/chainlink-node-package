@@ -1,5 +1,5 @@
 # These are the only allowed fields in the config.yaml
-NETWORK_CONFIG_PARAMS = [
+CHAIN_CONFIG_PARAMS = [
     "type",
     "rpc",
     "ws",
@@ -27,8 +27,9 @@ POSTGRES_CONFIG_PARAMS = [
 def sanity_check(plan, input_args):
     """Validate input arguments for the Chainlink package"""
     # Check network config fields
-    if "network" in input_args:
-        validate_params(plan, input_args["network"], "network", NETWORK_CONFIG_PARAMS)
+    if "chains" in input_args:
+        for chain in input_args["chains"]:
+            validate_params(plan, chain, "chains", CHAIN_CONFIG_PARAMS)
     
     # Check chainlink nodes configuration
     if "chainlink_nodes" in input_args:

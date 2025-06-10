@@ -7,7 +7,7 @@ vrfv2plus = import_module("./src/vrfv2plus.star")
 automations = import_module("./src/package_io/automation.star")
 node_utils = import_module("./src/node_utils.star")
 
-#Initialize chainlink node
+#Initialize chainlink node  
 def run(plan, args = {}):
     return deploy_nodes(plan, args)
 
@@ -34,18 +34,14 @@ def deploy_nodes(plan, args):
 
 # Create a ServiceConfig for a chainlink node without adding it
 def create_node_config(plan, chainlink_configs, postgres_output, chains):
-    # Validate at least one chain
-    if len(chains) == 0:
-        fail("At least one chain must be provided")
-    
-    # Convert chains to template format
     chains_for_template = []
-    for chain in chains:
-        chains_for_template.append({
-            "ChainID": str(chain.chain_id),
-            "HTTPURL": chain.rpc,
-            "WSURL": chain.ws
-        })
+    if chains != None and len(chains) > 0:
+        for chain in chains:
+            chains_for_template.append({
+                "ChainID": str(chain["chain_id"]),
+                "HTTPURL": chain["rpc"],
+                "WSURL": chain["ws"]
+            })
 
     config_subs = {
         "CHAINS": chains_for_template,
