@@ -10,10 +10,13 @@ def input_parser(plan, input_args):
     # Get default configuration
     result = default_input_args()
     
-    # Parse network config
-    if "network" in input_args:
-        for key, value in input_args["network"].items():
-            result["network"][key] = value
+    # Parse chains config
+    if "chains" in input_args:
+        for chain in input_args["chains"]:
+            chain_result = default_chain_config()
+            for key, value in chain.items():
+                chain_result[key] = value
+            result["chains"].append(chain_result)
     
     # Parse chainlink nodes config
     if "chainlink_nodes" in input_args and type(input_args["chainlink_nodes"]) == "list":
@@ -61,11 +64,7 @@ def input_parser(plan, input_args):
     
     # Create a struct with parsed configs
     return struct(
-        network = struct(
-            rpc = result["network"]["rpc"],
-            ws = result["network"]["ws"],
-            chain_id = result["network"]["chain_id"],
-        ),
+        chains = result["chains"],
         chainlink_nodes = nodes_structs
     )
 
@@ -73,28 +72,27 @@ def default_input_args():
     """Return default configuration values"""
     
     return {
-        "network": {
-            "rpc": "",
-            "ws": "",
-            "chain_id": "",
-        },
+        "chains": [],
         "chainlink_nodes": []
     }
 
 def validate_config(config):
     """Validate the configuration"""
-    # Validate Network config
-    if not config["network"]["rpc"]:
-        fail("network.rpc is required")
-    if not config["network"]["ws"]:
-        fail("network.ws is required")
-    if not config["network"]["chain_id"]:
-        fail("network.chain_id is required")
+    # Validate chains config
+    #if len(config["chains"]) == 0:
+        #fail("At least one chain is required")
+    for chain in config["chains"]:
+        if not chain["rpc"]:
+            fail("chains.rpc is required")
+        if not chain["ws"]:
+            fail("chains.ws is required")
+        if not chain["chain_id"]:
+            fail("chains.chain_id is required")
     
     # Validate Chainlink nodes config
     if len(config["chainlink_nodes"]) == 0:
         fail("At least one chainlink node is required")
-    
+
     # Validate each node configuration
     for i, node in enumerate(config["chainlink_nodes"]):
         node_label = "chainlink_nodes[{0}]".format(i)
@@ -109,6 +107,14 @@ def validate_config(config):
             fail("{0}.api_user is required".format(node_label))
         if not node["api_password"]:
             fail("{0}.api_password is required".format(node_label))
+
+def default_chain_config():
+    """Return a default chain configuration"""
+    return {
+        "rpc": "",
+        "ws": "",
+        "chain_id": 0
+    }
 
 def default_node_config():
     """Return a default node configuration"""
