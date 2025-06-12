@@ -33,7 +33,7 @@ def deploy_nodes(plan, args):
     )
 
 # Create a ServiceConfig for a chainlink node without adding it
-def create_node_config(plan, chainlink_configs, postgres_output, chains):
+def create_node_config(plan, chainlink_configs, postgres_output, chains, capabilitiesRegistry=None):
     chains_for_template = []
     if chains != None and len(chains) > 0:
         for chain in chains:
@@ -49,6 +49,8 @@ def create_node_config(plan, chainlink_configs, postgres_output, chains):
         "KEYSTORE_PW": chainlink_configs.keystore_pw,
         "CHAINLINK_API_PASSWORD": chainlink_configs.api_password,
         "CHAINLINK_API_EMAIL": chainlink_configs.api_user,
+        "CAPABILITIES_REGISTRY_ADDRESS": capabilitiesRegistry,
+        "HOME_CHAIN_ID": chains[0]["chain_id"],
     }
 
     # ---------- render node configs------------------------------------
