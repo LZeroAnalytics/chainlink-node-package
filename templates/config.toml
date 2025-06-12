@@ -44,3 +44,16 @@ Enabled = true
 [P2P.V2]
 # Listen on every interface, TCP port 6689 inside the container
 ListenAddresses   = ["0.0.0.0:6689"]
+
+# === CAPABILITIES REGISTRY (REQUIRED) ===
+{{if .CAPABILITIES_REGISTRY_ADDRESS}}
+[Capabilities.ExternalRegistry]
+Address = "{{.CAPABILITIES_REGISTRY_ADDRESS}}"
+NetworkID = "evm"
+ChainID = "{{.HOME_CHAIN_ID}}"
+
+# === P2P NETWORKING ===
+[Capabilities.Peering.V2]
+Enabled = true
+ListenAddresses = ['0.0.0.0:6689']
+{{end}}
