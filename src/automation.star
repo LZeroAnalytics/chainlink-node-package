@@ -107,8 +107,8 @@ def _deploy_and_config_automations2_3_contracts(plan, node_result, registry_addr
         nodes_data.append(node_info)
     
     # 3. Generate OCR3 config
-    nodes_json = json.encode(nodes_data)
-    ocr3_result = ocr.generate_ocr3_config(plan, nodes_json)
+    ocr3_input = { "nodes": nodes_data, "pluginType": "automation" }
+    ocr3_result = ocr.generate_ocr3_config(plan, json.encode(ocr3_input))
     ocr3_config = json.decode(ocr3_result)
     
     # 4. Set config on registry using hardhat script with proper params
