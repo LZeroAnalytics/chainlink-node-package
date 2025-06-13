@@ -1,6 +1,6 @@
 # Import packages
 hardhat_package = import_module("github.com/LZeroAnalytics/hardhat-package/main.star")
-main_package = import_module("../main.star")
+deployment = import_module("./deployment.star")
 node_utils = import_module("./node_utils.star")
 constants = import_module("./package_io/constants.star")
 ocr = import_module("./ocr/ocr.star")
@@ -12,7 +12,7 @@ def setup_automation_full(plan, network_cfg, automation_cfg):
     node_result = _deploy_and_fund_nodes(plan, network_cfg, automation_cfg)
     
     # 2. Configure OCR3 on registry (Automation v2.3 uses OCR3 under the hood)
-    bootstrap_node, oracle_nodes, deployment_result = _deploy_and_config_automations2_3_contracts(plan, node_result, registry_addr)
+    bootstrap_node, oracle_nodes, deployment_result = _deploy_and_config_automations2_3_contracts(plan, node_result, network_cfg, automation_cfg)
     
     # 3. Create jobs on nodes
     _create_automation_jobs(plan, network_cfg, automation_cfg, deployment_result["automationRegistry"], bootstrap_node, oracle_nodes)
@@ -35,7 +35,7 @@ def _deploy_and_fund_nodes(plan, network_cfg, automation_cfg):
     for i in range(oracle_cnt):
         configs.append({"node_name": "chainlink-node-automation-oracle-" + str(i), "image": node_image})
     
-    node_result = main_package.run(plan, args = {"network": network_cfg, "chainlink_nodes": configs})
+    node_result = deployment.deploy_nodes(plan, args = {"network": network_cfg, "chainlink_nodes": configs})
     
     # Fund nodes if faucet provided
     faucet_url = network_cfg.get("faucet", "")
@@ -47,18 +47,7 @@ def _deploy_and_fund_nodes(plan, network_cfg, automation_cfg):
     return node_result
 
 
-def _deploy_contracts(plan, network_cfg, automation_cfg):
-
-
-    res = hardhat_package.script(plan, "scripts/deploy-automation-v23.js", "bloctopus", 
-        return_keys = {"registry": "automationRegistry", "registrar": "automationRegistrar"},
-        extraCmds = " | grep -A 100 DEPLOYMENT_JSON_BEGIN | grep -B 100 DEPLOYMENT_JSON_END | sed '/DEPLOYMENT_JSON_BEGIN/d' | sed '/DEPLOYMENT_JSON_END/d'"
-    )
-    
-    return res["extract.registry"]
-
-
-def _deploy_and_config_automations2_3_contracts(plan, node_result, registry_addr):
+def _deploy_and_config_automations2_3_contracts(plan, node_result, network_cfg, automation_cfg):
     hardhat_package.run(plan, "github.com/LZeroAnalytics/chainlink-automations-contracts", env_vars = {
         "RPC_URL": network_cfg.get("rpc", ""),
         "PRIVATE_KEY": network_cfg.get("private_key", ""),
