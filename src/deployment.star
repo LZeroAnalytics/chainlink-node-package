@@ -47,14 +47,14 @@ def create_node_config(plan, chainlink_configs, postgres_output, chains, capabil
     tomls_art = plan.render_templates(
         name   = "chainlink-tomls-" + chainlink_configs.node_name,
         config = {
-            "/config.toml": struct(template = read_file("./templates/config.toml"), data = config_subs),
-            "/secrets.toml": struct(template = read_file("./templates/secrets.toml"), data = config_subs),
-            "/.api": struct(template = read_file("./templates/.api"), data = config_subs)
+            "/config.toml": struct(template = read_file("../templates/config.toml"), data = config_subs),
+            "/secrets.toml": struct(template = read_file("../templates/secrets.toml"), data = config_subs),
+            "/.api": struct(template = read_file("../templates/.api"), data = config_subs)
         },
     )
 
     # ---------- create node jobs templates artifacts-------------------------------------------
-    jobs_templates_art = plan.upload_files( src = "./templates/jobs", name = "job-templates-"+chainlink_configs.node_name)
+    jobs_templates_art = plan.upload_files( src = "../templates/jobs", name = "job-templates-"+chainlink_configs.node_name)
 
     return ServiceConfig(
         image = chainlink_configs.image,
