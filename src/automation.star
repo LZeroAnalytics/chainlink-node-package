@@ -35,7 +35,7 @@ def _deploy_and_fund_nodes(plan, network_cfg, automation_cfg):
     for i in range(oracle_cnt):
         configs.append({"node_name": "chainlink-node-automation-oracle-" + str(i), "image": node_image})
     
-    node_result = deployment.deploy_nodes(plan, args = {"network": network_cfg, "chainlink_nodes": configs})
+    node_result = deployment.deploy_nodes(plan, args = {"chains": [network_cfg], "chainlink_nodes": configs})
     
     # Fund nodes if faucet provided
     faucet_url = network_cfg.get("faucet", "")
