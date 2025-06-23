@@ -74,11 +74,6 @@ def _deploy_and_config_automations2_3_contracts(plan, node_result, network_cfg, 
     oracle_nodes = [name for name in node_result.services.keys() if "oracle" in name]
     all_nodes = [bootstrap_node] + oracle_nodes
     
-    # 2. Extract node keys using existing node_utils
-    bootstrap_node = "chainlink-node-automation-bootstrap"
-    oracle_nodes = [name for name in node_result.services.keys() if "oracle" in name]
-    all_nodes = [bootstrap_node] + oracle_nodes
-    
     # Collect node information using existing patterns
     nodes_data = []
     for node_name in all_nodes:
