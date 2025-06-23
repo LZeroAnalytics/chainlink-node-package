@@ -1,7 +1,7 @@
-network:
-  rpc: http://host.docker.internal:51009
-  ws: ws://host.docker.internal:51010
-  chain_id: "3151908"
+chains:
+  - rpc: http://host.docker.internal:51009
+    ws: ws://host.docker.internal:51010
+    chain_id: "3151908"
 
 chainlink_nodes:
   - node_name: "chainlink-node"
