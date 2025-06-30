@@ -55,5 +55,5 @@ ChainID = "{{.HOME_CHAIN_ID}}"
 # === P2P NETWORKING ===
 [Capabilities.Peering.V2]
 Enabled = true
-ListenAddresses = ['0.0.0.0:6689']
+ListenAddresses = ['0.0.0.0:6690']
 {{end}}
