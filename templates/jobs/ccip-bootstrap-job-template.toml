@@ -1,13 +1,12 @@
 type = "ccip"
 schemaVersion = 1
 name = "ccip"
-p2pV2Bootstrappers = ["{{.P2P_V2_BOOTSTRAPPER}}"]
+p2pV2Bootstrappers = []
 capabilityVersion = "v1.0.0"
 capabilityLabelledName = "ccip"
 p2pKeyID = "{{.P2P_KEY_ID}}"
 
 [ocrKeyBundleIDs]
-evm = "{{.OCR2_KEY_BUNDLE}}"
 
 [pluginConfig]
 
