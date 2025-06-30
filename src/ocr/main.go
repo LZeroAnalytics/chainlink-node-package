@@ -14,6 +14,7 @@ import (
 	"github.com/smartcontractkit/libocr/offchainreporting2plus/confighelper"
 	ocr3 "github.com/smartcontractkit/libocr/offchainreporting2plus/ocr3confighelper"
 	"github.com/smartcontractkit/libocr/offchainreporting2plus/types"
+	"golang.org/x/crypto/curve25519"
 )
 
 // Plugin types enum
@@ -118,7 +119,7 @@ func main() {
 		onchainPkBytes, _ := hex.DecodeString(strings.TrimPrefix(node.OnchainKey, "ocr2on_evm_"))
 
 		var offchainPkFixed [ed25519.PublicKeySize]byte
-		var configPkFixed [ed25519.PublicKeySize]byte
+		var configPkFixed [curve25519.PointSize]byte
 		copy(offchainPkFixed[:], offchainPkBytes)
 		copy(configPkFixed[:], configPkBytes)
 
