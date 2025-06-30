@@ -93,14 +93,13 @@ def get_ocr_key(plan, node_name):
 
 def fund_eth_key(plan, eth_key, faucet_url):
     """Send 1 native coin to `eth_key` via simple faucet HTTP POST."""
-    if faucet_url == "":
-        # no faucet provided – skip funding
-        return 0
-    return plan.run_sh(
-        name = "fund-eth-" + eth_key[-8:],
+    result = plan.run_sh(
+        name = "fund-link-node-eth-wallet",
         image = "curlimages/curl:latest",
-        run = "curl -s -X POST " + faucet_url + "/fund -H 'Content-Type: application/json' -d '{\"address\":\"" + eth_key + "\",\"amount\":1}'"
-    ).code
+        run = "curl -X POST " + faucet_url + "/fund -H 'Content-Type: application/json' -d '{\"address\":\"" + eth_key + "\",\"amount\":1}'"
+    )
+    
+    return result.code
 
 
 def create_bootstrap_job(plan, dkg_contract_address, chain_id, node_name):
