@@ -65,6 +65,7 @@ def create_node_config(plan, chainlink_configs, postgres_output, chains, capabil
         ports = {
             "http": PortSpec(6688, "TCP"),
             "p2p": PortSpec(6689, "TCP"),
+            "p2p-cap": PortSpec(6690, "TCP"),
         },
         entrypoint = [
             "chainlink","node",
