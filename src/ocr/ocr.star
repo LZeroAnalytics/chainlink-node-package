@@ -1,15 +1,42 @@
-GO_IMAGE = "golang:1.21-alpine"
+GO_IMAGE = "golang:1.23-alpine"
+GO_SERVICE_NAME = "ocr3-config-generator"
 
-def generate_ocr3config(plan, input):
-    """Generate OCR3 config using run_sh instead of persistent service"""
+def init_ocr3_service(plan):
+    """Initialize OCR3 service and build the binary once"""
     
     # Upload source code
     ocr3_source = plan.upload_files(".")
     
+    # Add service 
+    service = plan.add_service(
+        name = GO_SERVICE_NAME,
+        config = ServiceConfig(
+            image = GO_IMAGE,
+            files = {
+                "/app": ocr3_source,
+            },
+            # Keep container running for exec commands
+            entrypoint = ["tail", "-f", "/dev/null"]
+        )
+    )
+    
+    # Build the Go application inside the container
+    plan.exec(
+        service_name = GO_SERVICE_NAME,
+        recipe = ExecRecipe(
+            command = ["sh", "-c", "cd /app && go mod tidy && go build -o /usr/local/bin/ocr main.go"]
+        )
+    )
+    
+    return service
+
+def generate_ocr3config(plan, input):
+    """Generate OCR3 config using pre-built service"""
+    
     # Build an extract map dynamically so we get each signer/transmitter separately
     extract = {
         "signers_json":      "fromjson | .signers",
-        "transmitters_json": "fromjson | .transmitters",
+        "transmitters_json": "fromjson | .transmitters", 
         "f":                 "fromjson | .f",
         "offchain_cfg_ver":  "fromjson | .offchainConfigVersion",
         "offchain_cfg":      "fromjson | .offchainConfig",
@@ -21,27 +48,15 @@ def generate_ocr3config(plan, input):
     # Escape JSON for shell command
     escaped_json = json.encode(input).replace('"', '\\"').replace("'", "\\'")
 
-    
-    # Build and run in one command
-    result = plan.run_sh(
-        run = """
-            cd /app && 
-            go mod tidy && 
-            go build -o ocr main.go && 
-            ./ocr '{}'
-        """.format(escaped_json),
+    # Run using pre-built binary
+    result = plan.exec(
+        service_name = GO_SERVICE_NAME,
+        recipe = ExecRecipe(
+            command = ["/usr/local/bin/ocr", escaped_json],
+            extract = extract,
+        ),
+        description = "Running OCR3 config generator",
         
-        name = "ocr3-config-generator",
-        image = GO_IMAGE,
-        
-        # Mount the source code
-        files = {
-            "/app": ocr3_source,
-        },
-        
-        description = "Building and running OCR3 config generator",
-
-        extract = extract
     )
     
     return result

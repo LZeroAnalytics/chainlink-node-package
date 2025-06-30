@@ -10,6 +10,7 @@ require (
 	github.com/ethereum/go-ethereum v1.15.3
 	github.com/smartcontractkit/chainlink-automation v0.8.1
 	github.com/smartcontractkit/libocr v0.0.0-20241007185508-adbe57025f12
+	golang.org/x/crypto v0.35.0
 )
 
 require (
@@ -26,7 +27,6 @@ require (
 	github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.1 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
