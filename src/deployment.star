@@ -27,11 +27,18 @@ def create_node_config(plan, chainlink_configs, postgres_output, chains, capabil
     chains_for_template = []
     if chains != None and len(chains) > 0:
         for chain in chains:
-            chains_for_template.append({
+            chain_config = {
                 "ChainID": str(chain["chain_id"]),
                 "HTTPURL": chain["rpc"],
                 "WSURL": chain["ws"]
-            })
+            }
+            
+            # Optionally add LINK contract address if provided
+            existing_contracts = chain.get("existing_contracts", {})
+            if existing_contracts and "link_token" in existing_contracts and existing_contracts["link_token"]:
+                chain_config["LinkContractAddress"] = existing_contracts["link_token"]
+            
+            chains_for_template.append(chain_config)
 
     config_subs = {
         "CHAINS": chains_for_template,
