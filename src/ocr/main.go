@@ -11,6 +11,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	ocr2keepers30config "github.com/smartcontractkit/chainlink-automation/pkg/v3/config"
+	"github.com/smartcontractkit/chainlink-ccip/pkg/types/ccipocr3"
+	ccipconfig "github.com/smartcontractkit/chainlink-ccip/pluginconfig"
+	commonconfig "github.com/smartcontractkit/chainlink-common/pkg/config"
 	"github.com/smartcontractkit/libocr/offchainreporting2plus/confighelper"
 	ocr3 "github.com/smartcontractkit/libocr/offchainreporting2plus/ocr3confighelper"
 	"github.com/smartcontractkit/libocr/offchainreporting2plus/types"
@@ -52,48 +55,17 @@ type OCR3Config struct {
 	ConfigDigest          string   `json:"configDigest,omitempty"`
 }
 
-// Complete CCIP Commit Plugin Configuration (matching Go pluginconfig.CommitOffchainConfig)
-type CCIPCommitOffchainConfig struct {
-	RemoteGasPriceBatchWriteFrequency  time.Duration        `json:"remoteGasPriceBatchWriteFrequency"`
-	TokenPriceBatchWriteFrequency      time.Duration        `json:"tokenPriceBatchWriteFrequency"`
-	NewMsgScanBatchSize                uint32               `json:"newMsgScanBatchSize"`
-	MaxReportTransmissionCheckAttempts uint32               `json:"maxReportTransmissionCheckAttempts"`
-	RMNEnabled                         bool                 `json:"rmnEnabled"`
-	RMNSignaturesTimeout               time.Duration        `json:"rmnSignaturesTimeout"`
-	MaxMerkleTreeSize                  uint32               `json:"maxMerkleTreeSize"`
-	SignObservationPrefix              string               `json:"signObservationPrefix"`
-	TransmissionDelayMultiplier        time.Duration        `json:"transmissionDelayMultiplier"`
-	InflightPriceCheckRetries          uint32               `json:"inflightPriceCheckRetries"`
-	MerkleRootAsyncObserverDisabled    bool                 `json:"merkleRootAsyncObserverDisabled"`
-	MerkleRootAsyncObserverSyncFreq    time.Duration        `json:"merkleRootAsyncObserverSyncFreq"`
-	MerkleRootAsyncObserverSyncTimeout time.Duration        `json:"merkleRootAsyncObserverSyncTimeout"`
-	ChainFeeAsyncObserverDisabled      bool                 `json:"chainFeeAsyncObserverDisabled"`
-	TokenPriceAsyncObserverDisabled    bool                 `json:"tokenPriceAsyncObserverDisabled"`
-	PriceFeedChainSelector             string               `json:"priceFeedChainSelector"`
-	TokenInfo                          map[string]TokenInfo `json:"tokenInfo"`
-}
+// We'll use the types directly from chainlink-ccip/pluginconfig
 
-type TokenInfo struct {
-	Symbol   string `json:"symbol"`
-	Decimals uint8  `json:"decimals"`
-}
-
-// Complete CCIP Execute Plugin Configuration (matching Go pluginconfig.ExecuteOffchainConfig)
-type CCIPExecuteOffchainConfig struct {
-	BatchGasLimit               uint32                    `json:"batchGasLimit"`
-	InflightCacheExpiry         time.Duration             `json:"inflightCacheExpiry"`
-	RootSnoozeTime              time.Duration             `json:"rootSnoozeTime"`
-	MessageVisibilityInterval   time.Duration             `json:"messageVisibilityInterval"`
-	BatchingStrategyID          uint32                    `json:"batchingStrategyID"`
-	TransmissionDelayMultiplier time.Duration             `json:"transmissionDelayMultiplier"`
-	MaxReportMessages           uint32                    `json:"maxReportMessages"`
-	MaxSingleChainReports       uint32                    `json:"maxSingleChainReports"`
-	TokenDataObservers          []TokenDataObserverConfig `json:"tokenDataObservers"`
-}
-
-type TokenDataObserverConfig struct {
-	Type string `json:"type"`
-	// Additional fields would be added based on observer type
+// Add stripKeyPrefix function to match official implementation
+func stripKeyPrefix(key string) string {
+	// Remove common prefixes
+	prefixes := []string{"ocr2off_evm_", "ocr2cfg_evm_", "ocr2on_evm_", "0x"}
+	result := key
+	for _, prefix := range prefixes {
+		result = strings.TrimPrefix(result, prefix)
+	}
+	return result
 }
 
 func main() {
@@ -109,19 +81,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Build oracle identities
+	// Build oracle identities - matching official implementation
 	S := make([]int, len(input.Nodes))
 	oracleIdentities := make([]confighelper.OracleIdentityExtra, len(input.Nodes))
 
 	for i, node := range input.Nodes {
-		offchainPkBytes, _ := hex.DecodeString(strings.TrimPrefix(node.OffchainKey, "ocr2off_evm_"))
-		configPkBytes, _ := hex.DecodeString(strings.TrimPrefix(node.ConfigKey, "ocr2cfg_evm_"))
-		onchainPkBytes, _ := hex.DecodeString(strings.TrimPrefix(node.OnchainKey, "ocr2on_evm_"))
+		// Process keys following official implementation pattern
+		offChainPubKeyTemp, err := hex.DecodeString(stripKeyPrefix(node.OffchainKey))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error decoding offchain key for node %d: %v\n", i, err)
+			os.Exit(1)
+		}
 
+		configPubKeyTemp, err := hex.DecodeString(stripKeyPrefix(node.ConfigKey))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error decoding config key for node %d: %v\n", i, err)
+			os.Exit(1)
+		}
+
+		// For onchain key, use the official method: convert to address first, then get bytes
+		formattedOnChainPubKey := stripKeyPrefix(node.OnchainKey)
+		onchainPkBytes := common.HexToAddress(formattedOnChainPubKey).Bytes()
+
+		// Fix array sizes and copying
 		var offchainPkFixed [ed25519.PublicKeySize]byte
 		var configPkFixed [curve25519.PointSize]byte
-		copy(offchainPkFixed[:], offchainPkBytes)
-		copy(configPkFixed[:], configPkBytes)
+		copy(offchainPkFixed[:], offChainPubKeyTemp)
+		copy(configPkFixed[:], configPubKeyTemp)
 
 		oracleIdentities[i] = confighelper.OracleIdentityExtra{
 			OracleIdentity: confighelper.OracleIdentity{
@@ -157,9 +143,9 @@ func generateConfigForPlugin(input UnifiedInput, oracleIdentities []confighelper
 		automationConfig := ocr2keepers30config.OffchainConfig{
 			TargetProbability:    "0.999",
 			TargetInRounds:       1,
-			PerformLockoutWindow: 100000,
-			GasLimitPerReport:    10300000,
-			GasOverheadPerUpkeep: 300_000,
+			PerformLockoutWindow: 3600000, // Milliseconds
+			GasLimitPerReport:    5300000,
+			GasOverheadPerUpkeep: 300000,
 			MinConfirmations:     0,
 			MaxUpkeepBatchSize:   1,
 		}
@@ -167,7 +153,7 @@ func generateConfigForPlugin(input UnifiedInput, oracleIdentities []confighelper
 		timingParams = getAutomationTimingParams()
 
 	case PluginTypeCommit:
-		commitConfig := getCommitConfig(input)
+		commitConfig := getCommitConfig()
 		pluginConfigBytes, err = json.Marshal(commitConfig)
 		timingParams = getCommitTimingParams()
 
@@ -284,43 +270,46 @@ func getAutomationTimingParams() OCRTimingParams {
 	}
 }
 
-// Default commit config based on Go globals.DefaultCommitOffChainCfg
-func getCommitConfig(input UnifiedInput) CCIPCommitOffchainConfig {
-	return CCIPCommitOffchainConfig{
-		RemoteGasPriceBatchWriteFrequency:  20 * time.Minute, // ethprod: 2 * time.Hour
-		TokenPriceBatchWriteFrequency:      2 * time.Hour,    //eth prod: 12 * time.Hour
-		NewMsgScanBatchSize:                256,              // merklemulti.MaxNumberTreeLeaves
-		MaxReportTransmissionCheckAttempts: 5,                //prod: 10
-		RMNEnabled:                         false,            //true for prod envs (but we do not have rmn here)
-		RMNSignaturesTimeout:               30 * time.Minute, // ethprod: 6900 * time.Millisecond
-		MaxMerkleTreeSize:                  256,              // merklemulti.MaxNumberTreeLeaves
-		SignObservationPrefix:              "chainlink ccip 1.6 rmn observation",
-		TransmissionDelayMultiplier:        15 * time.Second,
-		InflightPriceCheckRetries:          10,
-		MerkleRootAsyncObserverDisabled:    false,
-		MerkleRootAsyncObserverSyncFreq:    4 * time.Second,
-		MerkleRootAsyncObserverSyncTimeout: 12 * time.Second,
+// Default commit config
+func getCommitConfig() ccipconfig.CommitOffchainConfig {
+	return ccipconfig.CommitOffchainConfig{
+		RemoteGasPriceBatchWriteFrequency:  *commonconfig.MustNewDuration(10 * time.Minute),
+		TokenPriceBatchWriteFrequency:      *commonconfig.MustNewDuration(1 * time.Hour),
+		NewMsgScanBatchSize:                128,
+		MaxReportTransmissionCheckAttempts: 3,
+		RMNEnabled:                         false,
+		RMNSignaturesTimeout:               10 * time.Minute,
+		MaxMerkleTreeSize:                  128,
+		SignObservationPrefix:              "ccip 1.6 rmn",
+		TransmissionDelayMultiplier:        10 * time.Second,
+		InflightPriceCheckRetries:          5,
+		MerkleRootAsyncObserverDisabled:    true,
+		MerkleRootAsyncObserverSyncFreq:    0,
+		MerkleRootAsyncObserverSyncTimeout: 0,
 		ChainFeeAsyncObserverDisabled:      true,
+		ChainFeeAsyncObserverSyncFreq:      0,
+		ChainFeeAsyncObserverSyncTimeout:   0,
 		TokenPriceAsyncObserverDisabled:    true,
-		PriceFeedChainSelector:             input.FeedChainSelector,
-		TokenInfo:                          make(map[string]TokenInfo),
+		TokenPriceAsyncObserverSyncFreq:    *commonconfig.MustNewDuration(0),
+		TokenPriceAsyncObserverSyncTimeout: *commonconfig.MustNewDuration(0),
+		PriceFeedChainSelector:             0, // Will be set from input.ChainSelector
+		TokenInfo:                          make(map[ccipocr3.UnknownEncodedAddress]ccipconfig.TokenInfo),
 	}
 }
 
-// Default exec config based on Go globals.DefaultExecuteOffChainCfg
-func getExecConfig() CCIPExecuteOffchainConfig {
-	config := CCIPExecuteOffchainConfig{
-		BatchGasLimit:               6_500_000,
-		InflightCacheExpiry:         1 * time.Minute,
-		RootSnoozeTime:              5 * time.Minute,
-		MessageVisibilityInterval:   1 * time.Hour, //wth prod: 8 hours
+// Default exec config
+func getExecConfig() ccipconfig.ExecuteOffchainConfig {
+	return ccipconfig.ExecuteOffchainConfig{
+		BatchGasLimit:               5000000,
+		InflightCacheExpiry:         *commonconfig.MustNewDuration(30 * time.Second),
+		RootSnoozeTime:              *commonconfig.MustNewDuration(2 * time.Minute),
+		MessageVisibilityInterval:   *commonconfig.MustNewDuration(30 * time.Minute),
 		BatchingStrategyID:          0,
-		TransmissionDelayMultiplier: 15 * time.Second,
-		MaxReportMessages:           0,
-		MaxSingleChainReports:       0,
-		TokenDataObservers:          []TokenDataObserverConfig{},
+		TransmissionDelayMultiplier: 10 * time.Second,
+		MaxReportMessages:           10,
+		MaxSingleChainReports:       10,
+		TokenDataObservers:          []ccipconfig.TokenDataObserverConfig{},
 	}
-	return config
 }
 
 func convertToOCR3Config(signers []types.OnchainPublicKey, transmitters []types.Account, f uint8, offchainConfigVersion uint64, offchainConfig []byte, pluginType PluginType) (*OCR3Config, error) {

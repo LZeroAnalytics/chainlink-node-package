@@ -33,26 +33,27 @@ def init_ocr3_service(plan):
 def generate_ocr3config(plan, input):
     """Generate OCR3 config using pre-built service"""
     
-    # Build an extract map dynamically so we get each signer/transmitter separately
+    # Build an extract map - create arrays directly instead of individual elements
     extract = {
-        "signers_json":      "fromjson | .signers",
-        "transmitters_json": "fromjson | .transmitters", 
+        "signers":           "fromjson | [.signers[]]",      # Create array directly
+        "transmitters":      "fromjson | [.transmitters[]]", # Create array directly
         "f":                 "fromjson | .f",
         "offchain_cfg_ver":  "fromjson | .offchainConfigVersion",
         "offchain_cfg":      "fromjson | .offchainConfig",
     }
+
     for i in range(len(input["nodes"])):
         extract["signer_{}".format(i)]      = "fromjson | .signers[{}]".format(i)
         extract["transmitter_{}".format(i)] = "fromjson | .transmitters[{}]".format(i)
 
-    # Escape JSON for shell command
-    escaped_json = json.encode(input).replace('"', '\\"').replace("'", "\\'")
+    # Convert input to JSON string without additional escaping
+    json_input = json.encode(input)
 
     # Run using pre-built binary
     result = plan.exec(
         service_name = GO_SERVICE_NAME,
         recipe = ExecRecipe(
-            command = ["/usr/local/bin/ocr", escaped_json],
+            command = ["/usr/local/bin/ocr", json_input],
             extract = extract,
         ),
         description = "Running OCR3 config generator",
