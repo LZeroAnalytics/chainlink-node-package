@@ -1,4 +1,4 @@
-GO_IMAGE = "golang:1.23-alpine"
+GO_IMAGE = "golang:1.24-alpine"
 GO_SERVICE_NAME = "ocr3-config-generator"
 
 def init_ocr3_service(plan):
