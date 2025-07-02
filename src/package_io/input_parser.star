@@ -113,7 +113,8 @@ def default_chain_config():
     return {
         "rpc": "",
         "ws": "",
-        "chain_id": 0
+        "chain_id": 0,
+        "existing_contracts": {}
     }
 
 def default_node_config():

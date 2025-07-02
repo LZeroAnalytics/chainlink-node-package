@@ -3,7 +3,8 @@ CHAIN_CONFIG_PARAMS = [
     "type",
     "rpc",
     "ws",
-    "chain_id"
+    "chain_id",
+    "existing_contracts"
 ]
 
 CHAINLINK_NODE_PARAMS = [
