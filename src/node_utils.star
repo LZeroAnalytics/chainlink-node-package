@@ -8,15 +8,21 @@ def get_p2p_peer_id(plan, node_name):
         "echo '{\"peer\":\"'$(chainlink keys p2p list | awk '/Peer ID:/ {print substr($3,5)}' | head -n1)'\"}'"
     ]
 
-    res = plan.exec(
+    result = plan.wait(
         service_name = node_name,
         recipe = ExecRecipe(
             command = ["/bin/bash", "-c", " ".join(cmd)],
             extract = { "peer": "fromjson | .peer" }
-        )
+        ),
+        field = "code",
+        assertion = "==",
+        target_value = 0,
+        interval = "5s",
+        timeout = "30s",
+        description = "waiting for P2P peer ID command to succeed"
     )
 
-    return res["extract.peer"]
+    return result["extract.peer"]
 
 
 def get_eth_key(plan, node_name, chain_id=None):
@@ -36,15 +42,21 @@ def get_eth_key(plan, node_name, chain_id=None):
             "echo '{\"eth\":\"'$(chainlink keys eth list | awk '/Address:/ {print $2}' | head -n1)'\"}'"
         ]
 
-    res = plan.exec(
+    result = plan.wait(
         service_name = node_name,
         recipe = ExecRecipe(
             command  = ["/bin/bash", "-c", " ".join(cmd)],
             extract  = { "eth": "fromjson | .eth" },
         ),
+        field = "code",
+        assertion = "==",
+        target_value = 0,
+        interval = "5s",
+        timeout = "30s",
+        description = "waiting for ETH key command to succeed"
     )
 
-    return res["extract.eth"]
+    return result["extract.eth"]
 
 
 def get_ocr_key_bundle_id(plan, node_name):
@@ -55,15 +67,21 @@ def get_ocr_key_bundle_id(plan, node_name):
         "echo '{\"ocr_key_bundle_id\":\"'$(chainlink keys ocr2 list | awk '/ID:/ {print $2}' | head -n1)'\"}'"
     ]
 
-    res = plan.exec(
+    result = plan.wait(
         service_name = node_name,
         recipe = ExecRecipe(
             command  = ["/bin/bash", "-c", " ".join(cmd)],
             extract  = { "ocr_key_bundle_id": "fromjson | .ocr_key_bundle_id" },
         ),
+        field = "code",
+        assertion = "==",
+        target_value = 0,
+        interval = "5s",
+        timeout = "30s",
+        description = "waiting for OCR key bundle ID command to succeed"
     )   
 
-    return res["extract.ocr_key_bundle_id"]
+    return result["extract.ocr_key_bundle_id"]
 
 
 def get_ocr_key(plan, node_name):
@@ -101,13 +119,23 @@ def get_ocr_key(plan, node_name):
 
 
 def fund_eth_key(plan, eth_key, faucet_url):
-    """Send 1 native coin to `eth_key` via simple faucet HTTP POST."""
-    result = plan.run_sh(
-        name = "fund-link-node-eth-wallet",
-        image = "curlimages/curl:latest",
-        run = "curl -X POST " + faucet_url + "/fund -H 'Content-Type: application/json' -d '{\"address\":\"" + eth_key + "\",\"amount\":1}'"
-    )
+    """Send 1 native coin to `eth_key` via simple faucet HTTP POST with retry logic."""
+    max_retries = 3
     
+    for attempt in range(max_retries):
+        result = plan.run_sh(
+            name = "fund-link-node-eth-wallet-attempt-{}".format(attempt + 1),
+            image = "curlimages/curl:latest",
+            run = "curl -X POST " + faucet_url + "/fund -H 'Content-Type: application/json' -d '{\"address\":\"" + eth_key + "\",\"amount\":1}'"
+        )
+        
+        if result.code == 0:
+            plan.print("Successfully funded {} on attempt {}".format(eth_key, attempt + 1))
+            return result.code
+        
+        plan.print("Funding attempt {} failed for {}, trying again...".format(attempt + 1, eth_key))
+    
+    plan.print("Failed to fund {} after {} attempts".format(eth_key, max_retries))
     return result.code
 
 
@@ -120,11 +148,17 @@ def create_bootstrap_job(plan, dkg_contract_address, chain_id, node_name):
         "&& chainlink jobs create /tmp/bootstrap-job.toml"
     ]
 
-    plan.exec(
+    plan.wait(
         service_name = node_name,
         recipe = ExecRecipe(
             command = ["/bin/bash", "-c", " ".join(cmd)]
-        )
+        ),
+        field = "code",
+        assertion = "==",
+        target_value = 0,
+        interval = "5s",
+        timeout = "30s",
+        description = "waiting for bootstrap job creation to succeed"
     )
 
 def _seed_read_only_admin(plan, api_user, api_password, node_name):
@@ -135,11 +169,17 @@ def _seed_read_only_admin(plan, api_user, api_password, node_name):
         "--role", "admin"
     ]
     
-    plan.exec(
+    plan.wait(
         service_name = node_name,
         recipe = ExecRecipe(
             command = ["/bin/bash", "-c", " ".join(cmd)]
-        )
+        ),
+        field = "code",
+        assertion = "==",
+        target_value = 0,
+        interval = "5s",
+        timeout = "30s",
+        description = "waiting for admin user creation to succeed"
     )
 
 def create_job(plan, node_name, template_name, substitutions):
@@ -158,4 +198,13 @@ def create_job(plan, node_name, template_name, substitutions):
         sed_cmd,
         "&& chainlink jobs create /tmp/%s.toml" % template_name
     ]
-    plan.exec(service_name = node_name, recipe = ExecRecipe(command = ["/bin/bash", "-c", " ".join(cmd)]))
+    plan.wait(
+        service_name = node_name, 
+        recipe = ExecRecipe(command = ["/bin/bash", "-c", " ".join(cmd)]),
+        field = "code",
+        assertion = "==",
+        target_value = 0,
+        interval = "5s",
+        timeout = "30s",
+        description = "waiting for job creation to succeed"
+    )
