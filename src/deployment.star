@@ -6,7 +6,7 @@ def deploy_nodes(plan, args, capabilitiesRegistry=None):
     # Parse the configuration
     config = input_parser.input_parser(plan, args)
     
-    bootstap_result = None
+    bootstrap_result = None
     bootstrapper_address = None
     nodes_configs = {}
     deployed_nodes_services = {}
@@ -20,7 +20,7 @@ def deploy_nodes(plan, args, capabilitiesRegistry=None):
             nodes_configs[node.node_name] = node_config #add to rest of the node configs to deploy in parllele later
 
 
-    if bootstap_result != None:
+    if bootstrap_result != None:
         deployed_nodes_services[config.chainlink_nodes[0].node_name] = bootstrap_result
 
     #Deploy all nodes in parallel
