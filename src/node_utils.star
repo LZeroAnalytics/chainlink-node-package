@@ -119,23 +119,13 @@ def get_ocr_key(plan, node_name):
 
 
 def fund_eth_key(plan, eth_key, faucet_url):
-    """Send 1 native coin to `eth_key` via simple faucet HTTP POST with retry logic."""
-    max_retries = 3
+    """Send 1 native coin to `eth_key` via simple faucet HTTP POST."""
+    result = plan.run_sh(
+        name = "fund-link-node-eth-wallet",
+        image = "curlimages/curl:latest",
+        run = "curl -X POST " + faucet_url + "/fund -H 'Content-Type: application/json' -d '{\"address\":\"" + eth_key + "\",\"amount\":1}'"
+    )
     
-    for attempt in range(max_retries):
-        result = plan.run_sh(
-            name = "fund-link-node-eth-wallet-attempt-{}".format(attempt + 1),
-            image = "curlimages/curl:latest",
-            run = "curl -X POST " + faucet_url + "/fund -H 'Content-Type: application/json' -d '{\"address\":\"" + eth_key + "\",\"amount\":1}'"
-        )
-        
-        if result.code == 0:
-            plan.print("Successfully funded {} on attempt {}".format(eth_key, attempt + 1))
-            return result.code
-        
-        plan.print("Funding attempt {} failed for {}, trying again...".format(attempt + 1, eth_key))
-    
-    plan.print("Failed to fund {} after {} attempts".format(eth_key, max_retries))
     return result.code
 
 
