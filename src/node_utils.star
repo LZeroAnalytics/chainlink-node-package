@@ -19,13 +19,22 @@ def get_p2p_peer_id(plan, node_name):
     return res["extract.peer"]
 
 
-def get_eth_key(plan, node_name):
-    """Returns first EVM key address (used by node to sign on-chain transactions)."""
-    cmd = [
-        "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
-        # emit {"eth":"<ADDRESS>"}  — one‑liner JSON
-        "echo '{\"eth\":\"'$(chainlink keys eth list | awk '/Address:/ {print $2}' | head -n1)'\"}'"
-    ]
+def get_eth_key(plan, node_name, chain_id=None):
+    """Returns EVM key address for specified chain ID or by index if no chain ID provided."""
+    if chain_id:
+        # Get key for specific chain ID deterministically
+        cmd = [
+            "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
+            # Filter by chain ID and extract address
+            "echo '{\"eth\":\"'$(chainlink keys eth list | awk '/Address:/ {addr=$2} /EVM Chain ID:[[:space:]]*%s/ {print addr}')'\"}'" % chain_id
+        ]
+    else:
+        # Fallback to index-based selection (original behavior)
+        cmd = [
+            "chainlink admin login --file /chainlink/.api > /dev/null 2>&1 &&",
+            # emit {"eth":"<ADDRESS>"}
+            "echo '{\"eth\":\"'$(chainlink keys eth list | awk '/Address:/ {print $2}' | head -n1)'\"}'"
+        ]
 
     res = plan.exec(
         service_name = node_name,
