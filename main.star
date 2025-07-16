@@ -5,6 +5,7 @@ vrfv2plus = import_module("./src/vrfv2plus.star")
 automations = import_module("./src/automation.star")
 node_utils = import_module("./src/node_utils.star")
 deployment = import_module("./src/deployment.star")
+ocr = import_module("./src/ocr/ocr.star")
 #Initialize chainlink node  
 def run(plan, args = {}):
     return deployment.deploy_nodes(plan, args)
