@@ -21,6 +21,9 @@ HTTPSPort=0
 [[EVM]]
 ChainID = "{{.ChainID}}"
 FinalityDepth = 1
+{{if .LinkContractAddress}}
+LinkContractAddress = "{{.LinkContractAddress}}"
+{{end}}
 
 [EVM.GasEstimator]
 PriceMax = '200 gwei'
@@ -55,5 +58,8 @@ ChainID = "{{.HOME_CHAIN_ID}}"
 # === P2P NETWORKING ===
 [Capabilities.Peering.V2]
 Enabled = true
+{{if .BOOTSTRAPPER_ADDRESS}}
+DefaultBootstrappers = ["{{.BOOTSTRAPPER_ADDRESS}}"]
+{{end}}
 ListenAddresses = ['0.0.0.0:6690']
 {{end}}
