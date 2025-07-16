@@ -1,29 +1,42 @@
 input_parser = import_module("./package_io/input_parser.star")
 postgres = import_module("github.com/tiljrd/postgres-package/main.star")
+utils = import_module("./node_utils.star")
 
 def deploy_nodes(plan, args, capabilitiesRegistry=None):
     # Parse the configuration
     config = input_parser.input_parser(plan, args)
     
+    bootstap_result = None
+    bootstrapper_address = None
     nodes_configs = {}
-    for node in config.chainlink_nodes:
-        # Create node database in postgres for each node
+    deployed_nodes_services = {}
+    for i, node in enumerate(config.chainlink_nodes):
         postgres_output = create_node_database(plan, node.postgres, node.node_name) #TODO: parallelize login in postgres pakcage too to spin up multiple db at the same time
-        nodes_configs[node.node_name] = create_node_config(plan, node, postgres_output, config.chains, capabilitiesRegistry)
+        node_config = create_node_config(plan, node, postgres_output, config.chains, capabilitiesRegistry, bootstrapper_address)
+        if capabilitiesRegistry != None and i == 0:
+            bootstrap_result = plan.add_service(name = node.node_name, config = node_config, description = "Deploying Bootrap node")
+            bootstrapper_address = utils.get_p2p_peer_id(plan, node.node_name) + "@" + bootstrap_result.ip_address + ":" + str(bootstrap_result.ports["p2p-cap"].number)
+        else: 
+            nodes_configs[node.node_name] = node_config #add to rest of the node configs to deploy in parllele later
+
+
+    if bootstap_result != None:
+        deployed_nodes_services[config.chainlink_nodes[0].node_name] = bootstrap_result
 
     #Deploy all nodes in parallel
-    all_nodes = plan.add_services(
+    nodes = plan.add_services(
         configs = nodes_configs,
         description = "Deploying " + str(len(config.chainlink_nodes)) + " Chainlink nodes in parallel"
     )
+    deployed_nodes_services = deployed_nodes_services | nodes
 
     return struct(
-        services = all_nodes,
+        services = deployed_nodes_services,
         nodes_configs = config.chainlink_nodes
     )
 
 # Create a ServiceConfig for a chainlink node without adding it
-def create_node_config(plan, chainlink_configs, postgres_output, chains, capabilitiesRegistry=None):
+def create_node_config(plan, chainlink_configs, postgres_output, chains, capabilitiesRegistry=None, bootstrapper_address=None):
     chains_for_template = []
     if chains != None and len(chains) > 0:
         for chain in chains:
@@ -48,6 +61,7 @@ def create_node_config(plan, chainlink_configs, postgres_output, chains, capabil
         "CHAINLINK_API_EMAIL": chainlink_configs.api_user,
         "CAPABILITIES_REGISTRY_ADDRESS": capabilitiesRegistry,
         "HOME_CHAIN_ID": chains[0]["chain_id"],
+        "BOOTSTRAPPER_ADDRESS": bootstrapper_address
     }
 
     # ---------- render node configs------------------------------------
@@ -61,19 +75,22 @@ def create_node_config(plan, chainlink_configs, postgres_output, chains, capabil
     )
 
     # ---------- create node jobs templates artifacts-------------------------------------------
-    jobs_templates_art = plan.upload_files( src = "../templates/jobs", name = "job-templates-"+chainlink_configs.node_name)
+    jobs_templates_art = plan.upload_files( src = "../templates/jobs", name = "job-templates-"+chainlink_configs.node_name) 
 
+    ports = {
+        "http": PortSpec(6688, "TCP"),
+        "p2p": PortSpec(6689, "TCP"),
+    }
+    if capabilitiesRegistry != None:
+        ports["p2p-cap"] = PortSpec(6690, "TCP")
+    
     return ServiceConfig(
         image = chainlink_configs.image,
         files = { 
             "/chainlink": tomls_art, 
             "/templates/jobs": jobs_templates_art
         },
-        ports = {
-            "http": PortSpec(6688, "TCP"),
-            "p2p": PortSpec(6689, "TCP"),
-            "p2p-cap": PortSpec(6690, "TCP"),
-        },
+        ports = ports,
         entrypoint = [
             "chainlink","node",
             "-config",  "/chainlink/config.toml",
